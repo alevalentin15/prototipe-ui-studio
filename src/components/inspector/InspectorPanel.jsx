@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PropertiesTab } from './PropertiesTab.jsx';
 import { ActionsTab } from './ActionsTab.jsx';
 import { CanvasPropertiesTab } from './CanvasPropertiesTab.jsx';
 import { LayersTree } from './LayersTree.jsx';
+import { ResizeHandle } from '../common/ResizeHandle.jsx';
 
 export const InspectorPanel = ({
   pestanaInspector,
@@ -12,9 +13,13 @@ export const InspectorPanel = ({
   proyectoActual,
   modoTema = 'claro',
   paletaPersonalizada = null,
+  paletasTema = null,
   onActualizarProp,
   onGuardarComoReutilizable,
   onActualizarAccion,
+  onActualizarOverlays,
+  onCrearVistaOverlay,
+  onActualizarVistaOverlay,
   onActualizarLienzo,
   onCambiarModoTema,
   onActualizarColorTema,
@@ -22,10 +27,14 @@ export const InspectorPanel = ({
   onSeleccionarComponente,
   onEliminarComponente
 }) => {
+  const [width, setWidth] = useState(320);
   const esLienzoSeleccionado = idComponenteSeleccionado === 'canvas';
 
   return (
-    <aside className="w-80 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0">
+    <aside style={{ width }} className="relative bg-slate-900 border-l border-slate-800 flex flex-col shrink-0">
+      <ResizeHandle className="absolute left-[-3px] top-0" direction="vertical" onResize={delta => {
+        setWidth(Math.max(260, Math.min(560, width - delta)));
+      }} />
       {/* Pestañas de Inspector */}
       <div className="h-10 border-b border-slate-800 flex items-center px-2 gap-1 bg-slate-900">
         <button
@@ -77,6 +86,7 @@ export const InspectorPanel = ({
             proyectoActual={proyectoActual}
             modoTema={modoTema}
             paletaPersonalizada={paletaPersonalizada}
+            paletasTema={paletasTema}
             onActualizarLienzo={onActualizarLienzo}
             onCambiarModoTema={onCambiarModoTema}
             onActualizarColorTema={onActualizarColorTema}
@@ -100,6 +110,9 @@ export const InspectorPanel = ({
             componenteSeleccionado={componenteSeleccionado}
             proyectoActual={proyectoActual}
             onActualizarAccion={onActualizarAccion}
+            onActualizarOverlays={onActualizarOverlays}
+            onCrearVistaOverlay={onCrearVistaOverlay}
+            onActualizarVistaOverlay={onActualizarVistaOverlay}
           />
         )}
 

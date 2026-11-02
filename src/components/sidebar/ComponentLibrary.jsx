@@ -4,6 +4,7 @@ import { getComponentsByCategory } from '../../registry/componentRegistry.js';
 import { useStudioDnd } from '../../dnd/DndContext.jsx';
 
 export const ComponentLibrary = ({
+  height = 320,
   componentesReutilizables = [],
   componenteSeleccionado,
   onAgregarComponente
@@ -33,7 +34,7 @@ export const ComponentLibrary = ({
   };
 
   return (
-    <div className="h-80 overflow-y-auto p-3 bg-slate-900 custom-scrollbar select-none">
+    <div style={{ height }} className="overflow-y-auto p-3 bg-slate-900 custom-scrollbar select-none shrink-0">
       <div className="flex items-center justify-between mb-2 px-1">
         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
           <Icon name="box" className="w-3.5 h-3.5 text-amber-400" />

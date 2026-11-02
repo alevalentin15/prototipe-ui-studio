@@ -16,6 +16,7 @@ export const DeviceFrame = ({
   onSeleccionarComponente,
   onEliminarComponente,
   onEjecutarAccion,
+  onActualizarProp,
   bottomSheetActivo,
   onCloseBottomSheet,
   dialogoActivo,
@@ -35,10 +36,10 @@ export const DeviceFrame = ({
   const resolvedBgColor = resolveM3Color(bgColorRaw, modoTema, paletaPersonalizada);
 
   // Espaciado individual (4 lados) con fallback a padding general
-  const padTop = vistaActual.paddingTop !== undefined ? `${vistaActual.paddingTop}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '16px');
-  const padBottom = vistaActual.paddingBottom !== undefined ? `${vistaActual.paddingBottom}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '16px');
-  const padLeft = vistaActual.paddingLeft !== undefined ? `${vistaActual.paddingLeft}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '16px');
-  const padRight = vistaActual.paddingRight !== undefined ? `${vistaActual.paddingRight}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '16px');
+  const padTop = vistaActual.paddingTop !== undefined ? `${vistaActual.paddingTop}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '0px');
+  const padBottom = vistaActual.paddingBottom !== undefined ? `${vistaActual.paddingBottom}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '0px');
+  const padLeft = vistaActual.paddingLeft !== undefined ? `${vistaActual.paddingLeft}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '0px');
+  const padRight = vistaActual.paddingRight !== undefined ? `${vistaActual.paddingRight}px` : (vistaActual.padding !== undefined ? `${vistaActual.padding}px` : '0px');
 
   // Dimensiones
   const anchoEstilo = vistaActual.fitContent ? 'auto' : (vistaActual.ancho ? `${vistaActual.ancho}px` : '375px');
@@ -98,7 +99,7 @@ export const DeviceFrame = ({
     overflowX,
     overflowY,
     overscrollBehavior: 'contain',
-    scrollbarGutter: 'stable',
+    scrollbarGutter: 'auto',
     boxSizing: 'border-box'
   };
 
@@ -172,7 +173,7 @@ export const DeviceFrame = ({
         {vistaActual.dispositivo === 'movil' && (
           <div
             className="device-status-bar w-full flex justify-between items-center text-[10px] px-3 shrink-0 select-none pointer-events-none"
-            style={{ minHeight: '24px', backgroundColor: statusBarBackground, color: statusBarTextColor }}
+            style={{ height: `${vistaActual.statusBarHeight ?? 24}px`, minHeight: `${vistaActual.statusBarHeight ?? 24}px`, backgroundColor: statusBarBackground, color: statusBarTextColor }}
           >
             <span>09:41</span>
             <div className="flex gap-1 font-mono">
@@ -205,6 +206,7 @@ export const DeviceFrame = ({
               onSeleccionarComponente={onSeleccionarComponente}
               onEliminarComponente={onEliminarComponente}
               onEjecutarAccion={onEjecutarAccion}
+              onActualizarProp={onActualizarProp}
             />
           ))
         )}
@@ -214,14 +216,15 @@ export const DeviceFrame = ({
         <BottomSheetOverlay
           activo={bottomSheetActivo}
           onClose={onCloseBottomSheet}
-        />
+        >{bottomSheetActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</BottomSheetOverlay>
 
         <DialogOverlay
           activo={dialogoActivo}
           onClose={onCloseDialogo}
           onConfirm={onConfirmDialogo}
-        />
+        >{dialogoActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</DialogOverlay>
       </div>
     </div>
   );
 };
+

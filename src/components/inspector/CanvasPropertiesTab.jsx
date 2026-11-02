@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icon } from '../common/Icon.jsx';
 import { M3_SCHEMES, M3_TOKENS, resolveM3Color, resolveEffectiveThemeMode } from '../../theme/materialTheme.js';
 
@@ -7,10 +7,12 @@ export const CanvasPropertiesTab = ({
   proyectoActual,
   modoTema = 'claro',
   paletaPersonalizada = null,
+  paletasTema = null,
   onActualizarLienzo,
   onCambiarModoTema,
   onActualizarColorTema
 }) => {
+  const [modoPaletaEditando, setModoPaletaEditando] = useState(modoTema === 'oscuro' ? 'oscuro' : 'claro');
   if (!vistaActual) {
     return (
       <div className="text-slate-500 text-xs text-center py-8 select-none">
@@ -21,16 +23,14 @@ export const CanvasPropertiesTab = ({
 
   const modoEfectivo = resolveEffectiveThemeMode(modoTema);
   const paletaBase = M3_SCHEMES[modoEfectivo] || M3_SCHEMES.claro;
-  const paletaEfectiva = {
-    ...paletaBase,
-    ...(paletaPersonalizada || {})
-  };
+  const modoPaleta = modoPaletaEditando === 'oscuro' ? 'oscuro' : 'claro';
+  const paletaEfectiva = { ...(M3_SCHEMES[modoPaleta] || M3_SCHEMES.claro), ...(paletasTema?.[modoPaleta] || (modoPaleta === modoTema ? paletaPersonalizada : {})) };
   const resolvedBgColor = resolveM3Color(vistaActual.esTransparente ? 'surface' : (vistaActual.bg || 'background'), modoTema, paletaPersonalizada);
 
-  const padTop = vistaActual.paddingTop !== undefined ? vistaActual.paddingTop : (vistaActual.padding ?? 16);
-  const padBottom = vistaActual.paddingBottom !== undefined ? vistaActual.paddingBottom : (vistaActual.padding ?? 16);
-  const padLeft = vistaActual.paddingLeft !== undefined ? vistaActual.paddingLeft : (vistaActual.padding ?? 16);
-  const padRight = vistaActual.paddingRight !== undefined ? vistaActual.paddingRight : (vistaActual.padding ?? 16);
+  const padTop = vistaActual.paddingTop !== undefined ? vistaActual.paddingTop : (vistaActual.padding ?? 0);
+  const padBottom = vistaActual.paddingBottom !== undefined ? vistaActual.paddingBottom : (vistaActual.padding ?? 0);
+  const padLeft = vistaActual.paddingLeft !== undefined ? vistaActual.paddingLeft : (vistaActual.padding ?? 0);
+  const padRight = vistaActual.paddingRight !== undefined ? vistaActual.paddingRight : (vistaActual.padding ?? 0);
 
   const rolesFondo = [
     { token: 'background', label: 'Background (Fondo general)' },
@@ -114,12 +114,13 @@ export const CanvasPropertiesTab = ({
       <div className="space-y-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
         <span className="font-semibold text-slate-200 text-[11px] block">Tokens del Proyecto</span>
         <p className="text-[10px] text-slate-500">Los colores personalizados se guardan con este proyecto y se aplican al lienzo y sus componentes.</p>
+        <div className="flex gap-1"><button type="button" onClick={() => setModoPaletaEditando('claro')} className={`flex-1 rounded px-2 py-1 ${modoPaleta === 'claro' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}>Editar claro</button><button type="button" onClick={() => setModoPaletaEditando('oscuro')} className={`flex-1 rounded px-2 py-1 ${modoPaleta === 'oscuro' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Editar oscuro</button></div>
         <div className="space-y-1.5">
           {rolesEditables.map(({ token, label }) => (
             <div key={token} className="flex items-center gap-2">
-              <input type="color" value={paletaEfectiva[token] || '#000000'} onChange={(e) => onActualizarColorTema(token, e.target.value)} className="w-6 h-6 rounded cursor-pointer border border-slate-700 bg-transparent p-0" title={`Editar token ${token}`} />
+              <input type="color" value={paletaEfectiva[token] || '#000000'} onChange={(e) => onActualizarColorTema(token, e.target.value, modoPaleta)} className="w-6 h-6 rounded cursor-pointer border border-slate-700 bg-transparent p-0" title={`Editar token ${token}`} />
               <span className="flex-1 text-[10px] text-slate-400">{label}</span>
-              <input type="text" value={paletaEfectiva[token] || ''} onChange={(e) => onActualizarColorTema(token, e.target.value)} className="w-20 bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-right font-mono text-[10px] text-slate-200" aria-label={`Color del token ${token}`} />
+              <input type="text" value={paletaEfectiva[token] || ''} onChange={(e) => onActualizarColorTema(token, e.target.value, modoPaleta)} className="w-20 bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-right font-mono text-[10px] text-slate-200" aria-label={`Color del token ${token}`} />
             </div>
           ))}
         </div>
@@ -367,6 +368,9 @@ export const CanvasPropertiesTab = ({
               >Restablecer</button>
             </div>
             <p className="text-[10px] text-slate-500">Fija sobre el contenido y transparente por defecto, como en un teléfono real.</p>
+            <label className="text-slate-400 block">Alto de barra (px)
+              <input type="number" min="0" max="80" value={vistaActual.statusBarHeight ?? 24} onChange={(e) => onActualizarLienzo('statusBarHeight', Number(e.target.value))} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200" />
+            </label>
             <label className="text-slate-400 block">Fondo de la barra (transparent o token)
               <div className="flex items-center gap-2 mt-1">
                 <input

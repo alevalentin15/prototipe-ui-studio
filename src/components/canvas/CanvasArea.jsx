@@ -23,6 +23,7 @@ export const CanvasArea = ({
   onSeleccionarComponente,
   onEliminarComponente,
   onEjecutarAccion,
+  onActualizarProp,
   onCloseBottomSheet,
   onCloseDialogo,
   onConfirmDialogo
@@ -117,6 +118,7 @@ export const CanvasArea = ({
               onSeleccionarComponente={onSeleccionarComponente}
               onEliminarComponente={onEliminarComponente}
               onEjecutarAccion={onEjecutarAccion}
+              onActualizarProp={onActualizarProp}
               bottomSheetActivo={bottomSheetActivo}
               onCloseBottomSheet={onCloseBottomSheet}
               dialogoActivo={dialogoActivo}

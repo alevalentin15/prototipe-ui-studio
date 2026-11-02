@@ -37,6 +37,7 @@ export const BoxLayout = ({ props, children, style = {}, className = "" }) => {
     gap: props.gap || '8px',
     border: props.border || undefined,
     overflow: 'hidden',
+    flexGrow: props.weight !== undefined ? Number(props.weight) : undefined,
     ...flexAlign,
     ...style
   };

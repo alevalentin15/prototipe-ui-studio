@@ -41,6 +41,7 @@ export const ColumnLayout = ({ props, children, style = {}, className = "" }) =>
     border: props.border || undefined,
     boxSizing: 'border-box',
     position: 'relative',
+    overflowY: props.scrollable ? 'auto' : undefined,
     ...style
   };
 

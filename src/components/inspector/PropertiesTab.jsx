@@ -912,10 +912,19 @@ export const PropertiesTab = ({
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="text-slate-400 block mb-1">Weight / Flex Grow</label><input type="number" min="0" step="0.1" value={props.weight ?? 0} onChange={(e) => onActualizarProp('weight', Number(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></div>
+            <div><label className="text-slate-400 block mb-1">Flex Shrink</label><input type="number" min="0" step="0.1" value={props.shrink ?? 1} onChange={(e) => onActualizarProp('shrink', Number(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-slate-400">Fijar posición<select value={props.fixedPosition || 'none'} onChange={(e) => onActualizarProp('fixedPosition', e.target.value === 'none' ? '' : e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"><option value="none">Normal</option><option value="top">Top</option><option value="bottom">Bottom</option></select></label>
+            <label className="text-slate-400">Separación (px)<input type="number" min="0" value={props.fixedOffset ?? 0} onChange={(e) => onActualizarProp('fixedOffset', Number(e.target.value))} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>
+          </div>
         </div>
       )}
 
       {/* SECCIÓN: ESPACIADO */}
+      <div className="px-1 space-y-2 text-slate-300"><label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(props.fillMaxWidth)} onChange={e => onActualizarProp('fillMaxWidth', e.target.checked)} />Fill max width</label><label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(props.fillMaxHeight)} onChange={e => onActualizarProp('fillMaxHeight', e.target.checked)} />Fill max height</label><label className="text-slate-400 block">Align self<select value={props.alignSelf || 'auto'} onChange={e => onActualizarProp('alignSelf', e.target.value === 'auto' ? '' : e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"><option value="auto">Auto</option><option value="stretch">Stretch</option><option value="flex-start">Start</option><option value="center">Center</option><option value="flex-end">End</option></select></label></div>
       {sections.includes('espaciado') && (
         <div className="space-y-2 border-b border-slate-800 pb-3">
           <span className="font-semibold text-slate-300 block text-[11px]">Espaciado y Márgenes</span>
@@ -972,7 +981,7 @@ export const PropertiesTab = ({
                     ? props.bg
                     : resolveM3Color(props.bg || 'surface', modoTema, paletaPersonalizada)
                 }
-                onChange={(e) => onActualizarProp('bg', e.target.value)}
+                onChange={(e) => { onActualizarProp('bg', e.target.value); onActualizarProp('gradient', ''); onActualizarProp('gradientColors', ''); }}
                 className="w-7 h-7 rounded cursor-pointer border border-slate-700 bg-transparent p-0"
                 title="Personalizar color manualmente"
               />
@@ -980,7 +989,7 @@ export const PropertiesTab = ({
                 type="text"
                 value={props.bg || ''}
                 placeholder="primary / #hex"
-                onChange={(e) => onActualizarProp('bg', e.target.value)}
+                onChange={(e) => { onActualizarProp('bg', e.target.value); onActualizarProp('gradient', ''); onActualizarProp('gradientColors', ''); }}
                 className="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-[11px]"
               />
               {!isSemanticToken(props.bg) && (
@@ -1001,7 +1010,7 @@ export const PropertiesTab = ({
                 {['primary', 'primaryContainer', 'secondary', 'secondaryContainer', 'surface', 'surfaceVariant', 'background', 'transparent'].map(tok => (
                   <button
                     key={tok}
-                    onClick={() => onActualizarProp('bg', tok)}
+                    onClick={() => { onActualizarProp('bg', tok); onActualizarProp('gradient', ''); onActualizarProp('gradientColors', ''); }}
                     className={`px-1.5 py-0.5 rounded text-[10px] border font-mono transition ${
                       props.bg === tok
                         ? 'bg-teal-900/60 border-teal-500 text-teal-200 font-bold'
@@ -1012,6 +1021,25 @@ export const PropertiesTab = ({
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-1.5 border-t border-slate-800 pt-2">
+              <label className="text-slate-300 text-[11px] font-medium block">Relleno degradado</label>
+              <p className="text-[10px] text-slate-500">Usa dos o más colores HEX separados por coma.</p>
+              <input type="text" value={props.gradientColors || ''} placeholder="#7c3aed, #ec4899, #f59e0b" onChange={(e) => {
+                const colors = e.target.value.split(',').map(color => color.trim()).filter(Boolean);
+                onActualizarProp('gradientColors', e.target.value);
+                onActualizarProp('gradient', colors.length >= 2 ? `linear-gradient(${props.gradientAngle || 135}deg, ${colors.join(', ')})` : '');
+              }} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-[10px]" aria-label="Colores del degradado" />
+              <div className="flex items-center gap-2">
+                <label className="flex-1 text-[10px] text-slate-400">Ángulo <input type="number" min="0" max="360" value={props.gradientAngle ?? 135} onChange={(e) => {
+                  const angle = Number(e.target.value); onActualizarProp('gradientAngle', angle);
+                  const colors = String(props.gradientColors || '').split(',').map(color => color.trim()).filter(Boolean);
+                  if (colors.length >= 2) onActualizarProp('gradient', `linear-gradient(${angle}deg, ${colors.join(', ')})`);
+                }} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>
+                <button type="button" onClick={() => { onActualizarProp('gradientColors', ''); onActualizarProp('gradient', ''); onActualizarProp('bg', def?.defaultProps?.bg || 'surface'); }} className="mt-4 px-2 py-1 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">Restablecer</button>
+              </div>
+              <div className="flex gap-1.5 pt-1"><button type="button" onClick={() => { onActualizarProp('gradientColors', '#6366f1, #a855f7'); onActualizarProp('gradient', 'linear-gradient(135deg, #6366f1, #a855f7)'); }} className="h-5 flex-1 rounded" style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }} title="Índigo a violeta" /><button type="button" onClick={() => { onActualizarProp('gradientColors', '#f97316, #ec4899'); onActualizarProp('gradient', 'linear-gradient(135deg, #f97316, #ec4899)'); }} className="h-5 flex-1 rounded" style={{ background: 'linear-gradient(135deg, #f97316, #ec4899)' }} title="Atardecer" /><button type="button" onClick={() => { onActualizarProp('gradientColors', '#14b8a6, #3b82f6, #8b5cf6'); onActualizarProp('gradient', 'linear-gradient(135deg, #14b8a6, #3b82f6, #8b5cf6)'); }} className="h-5 flex-1 rounded" style={{ background: 'linear-gradient(135deg, #14b8a6, #3b82f6, #8b5cf6)' }} title="Tricolor" /></div>
             </div>
           </div>
 
@@ -1113,3 +1141,4 @@ export const PropertiesTab = ({
     </div>
   );
 };
+

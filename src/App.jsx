@@ -13,7 +13,7 @@ import {
 } from './utils/treeUtils.js';
 import { exportarProyectosJSON } from './utils/exportUtils.js';
 import { getComponentDefinition } from './registry/componentRegistry.js';
-import { normalizarTemasProyectos } from './utils/projectUtils.js';
+import { normalizarTemasProyectos, obtenerPaletaTema } from './utils/projectUtils.js';
 
 import { DndProvider } from './dnd/DndContext.jsx';
 import { Toast } from './components/common/Toast.jsx';
@@ -85,9 +85,10 @@ function App() {
   // Selección activa actual
   const pestanaActual = pestanasAbiertas[pestanaActiva];
   const proyectoActual = proyectos.find(p => p.id === pestanaActual?.proyectoId);
-  const vistaActual = proyectoActual?.vistas.find(v => v.id === pestanaActual?.vistaId);
+  const vistaActual = proyectoActual?.vistas.find(v => v.id === pestanaActual?.vistaId)
+    || proyectoActual?.overlays?.find(v => v.id === pestanaActual?.vistaId);
   const modoTema = proyectoActual?.tema?.modo || 'claro';
-  const paletaPersonalizada = proyectoActual?.tema?.paletaPersonalizada || {};
+  const paletaPersonalizada = obtenerPaletaTema(proyectoActual, modoTema);
   const componenteSeleccionado = vistaActual ? buscarComponente(vistaActual.componentes, idComponenteSeleccionado) : null;
 
   // Notificaciones Toast
@@ -336,6 +337,16 @@ function App() {
     }));
   };
 
+  const handleActualizarOverlays = (overlays) => {
+    if (!proyectoActual) return;
+    setProyectos(prev => prev.map(p => p.id === proyectoActual.id ? { ...p, overlays } : p));
+  };
+
+  const handleActualizarVistaOverlay = (overlayId, cambios) => {
+    if (!proyectoActual) return;
+    setProyectos(prev => prev.map(p => p.id === proyectoActual.id ? { ...p, vistas: p.vistas.map(v => v.id === overlayId ? { ...v, ...cambios } : v) } : p));
+  };
+
   // Actualizar configuración del lienzo/vista
   const handleActualizarLienzo = (llave, valor) => {
     if (!vistaActual) return;
@@ -363,14 +374,22 @@ function App() {
     handleCambiarModoTema(modoTema === 'claro' ? 'oscuro' : 'claro');
   };
 
-  const handleActualizarColorTema = (key, valor) => {
+  const handleActualizarColorTema = (key, valor, modoEdicion = modoTema) => {
     if (!proyectoActual) return;
     setProyectos(prev => prev.map(proyecto => proyecto.id === proyectoActual.id
       ? {
           ...proyecto,
           tema: {
             ...proyecto.tema,
-            paletaPersonalizada: { ...(proyecto.tema?.paletaPersonalizada || {}), [key]: valor }
+            paletaPersonalizada: modoEdicion === (proyecto.tema?.modo === 'oscuro' ? 'oscuro' : 'claro')
+              ? { ...(proyecto.tema?.paletaPersonalizada || {}), [key]: valor }
+              : (proyecto.tema?.paletaPersonalizada || {}),
+            paletas: {
+              ...proyecto.tema?.paletas,
+              [modoEdicion === 'oscuro' ? 'oscuro' : 'claro']: {
+                ...(proyecto.tema?.paletas?.[modoEdicion === 'oscuro' ? 'oscuro' : 'claro'] || {}), [key]: valor
+              }
+            }
           }
         }
       : proyecto));
@@ -402,19 +421,20 @@ function App() {
     }
   };
 
-  const handleCrearProyecto = () => {
+  const handleCrearProyecto = (dispositivo = 'movil') => {
+    const esMovil = dispositivo === 'movil';
     const nuevo = {
       id: `proj-${Date.now()}`,
       nombre: `Proyecto Nuevo ${proyectos.length + 1}`,
-      tema: { modo: 'claro', paletaPersonalizada: {} },
+      tema: { modo: 'claro', paletas: { claro: {}, oscuro: {} }, paletaPersonalizada: {} },
       vistas: [
         {
           id: `vista-${Date.now()}`,
           nombre: 'Vista Principal',
-          dispositivo: 'movil',
-          ancho: 375,
-          alto: 812,
-          padding: 16,
+          dispositivo: esMovil ? 'movil' : 'web',
+          ancho: esMovil ? 375 : 1024,
+          alto: esMovil ? 812 : 640,
+          padding: 0,
           gap: 16,
           direccion: 'column',
           bg: 'background',
@@ -433,7 +453,7 @@ function App() {
       dispositivo: 'movil',
       ancho: 375,
       alto: 812,
-      padding: 16,
+      padding: 0,
       gap: 16,
       direccion: 'column',
       bg: 'background',
@@ -448,22 +468,72 @@ function App() {
     handleAbrirPestana(proyectoId, nuevaVista.id);
   };
 
+  const handleCrearVistaOverlay = (tipo) => {
+    if (!proyectoActual) return null;
+    const nueva = {
+      id: `overlay-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      nombre: tipo === 'bottomsheet' ? 'Sheet nuevo' : 'Dialog nuevo',
+      tipoOverlay: tipo,
+      titulo: tipo === 'bottomsheet' ? 'Nuevo menú' : 'Nueva confirmación',
+      mostrarTitulo: true,
+      dispositivo: 'web', ancho: tipo === 'bottomsheet' ? 375 : 420, alto: tipo === 'bottomsheet' ? 360 : 320,
+      padding: 16, gap: 12, direccion: 'column', bg: 'surface', componentes: []
+    };
+    setProyectos(prev => prev.map(p => p.id === proyectoActual.id ? { ...p, vistas: [...p.vistas, nueva] } : p));
+    handleAbrirPestana(proyectoActual.id, nueva.id);
+    return nueva;
+  };
+
+  const handleEliminarProyecto = (proyectoId) => {
+    if (proyectos.length <= 1) { mostrarToast('Debe permanecer al menos un proyecto.'); return; }
+    const objetivo = proyectos.find(p => p.id === proyectoId);
+    if (!window.confirm(`¿Eliminar el proyecto "${objetivo?.nombre}" y todas sus vistas?`)) return;
+    const restantes = proyectos.filter(p => p.id !== proyectoId);
+    setProyectos(restantes);
+    const tabs = pestanasAbiertas.filter(tab => tab.proyectoId !== proyectoId);
+    const fallback = restantes[0];
+    const tabsFinales = tabs.length ? tabs : [{ proyectoId: fallback.id, vistaId: fallback.vistas[0].id }];
+    setPestanasAbiertas(tabsFinales);
+    setPestanaActiva(0);
+    setIdComponenteSeleccionado(null);
+  };
+
+  const handleEliminarVista = (proyectoId, vistaId) => {
+    const proyecto = proyectos.find(p => p.id === proyectoId);
+    if (!proyecto || proyecto.vistas.length <= 1) { mostrarToast('Debe permanecer al menos una vista por proyecto.'); return; }
+    const vista = proyecto.vistas.find(v => v.id === vistaId);
+    if (!window.confirm(`¿Eliminar la vista "${vista?.nombre}"?`)) return;
+    const nuevaVista = proyecto.vistas.find(v => v.id !== vistaId);
+    setProyectos(prev => prev.map(p => p.id === proyectoId ? { ...p, vistas: p.vistas.filter(v => v.id !== vistaId) } : p));
+    const tabs = pestanasAbiertas.filter(tab => !(tab.proyectoId === proyectoId && tab.vistaId === vistaId));
+    const tabsFinales = tabs.length ? tabs : [{ proyectoId, vistaId: nuevaVista.id }];
+    setPestanasAbiertas(tabsFinales);
+    setPestanaActiva(0);
+    setIdComponenteSeleccionado(null);
+  };
+
   // Ejecución de acciones en Modo Vista Previa
   const handleEjecutarAccion = (accion) => {
     if (!accion) return;
     if (accion.tipo === 'alerta') {
       mostrarToast(accion.payload || '¡Acción ejecutada correctamente!');
     } else if (accion.tipo === 'bottomsheet') {
+      const contenidoPersonalizado = proyectoActual?.vistas?.find(item => item.id === (accion.vistaId || accion.overlayId)) || proyectoActual?.overlays?.find(item => item.id === accion.overlayId);
       setBottomSheetActivo({
         abierto: true,
-        titulo: 'Menú Desplegable (Bottom Sheet)',
-        contenido: accion.payload || 'Opciones del componente activadas.'
+        titulo: contenidoPersonalizado?.titulo || 'Menú Desplegable (Bottom Sheet)',
+        mostrarTitulo: contenidoPersonalizado?.mostrarTitulo !== false,
+        vista: contenidoPersonalizado,
+        contenido: contenidoPersonalizado?.contenido ?? accion.payload ?? 'Opciones del componente activadas.'
       });
     } else if (accion.tipo === 'dialog') {
+      const contenidoPersonalizado = proyectoActual?.vistas?.find(item => item.id === (accion.vistaId || accion.overlayId)) || proyectoActual?.overlays?.find(item => item.id === accion.overlayId);
       setDialogoActivo({
         abierto: true,
-        titulo: 'Diálogo Modal',
-        contenido: accion.payload || '¿Desea confirmar esta acción?'
+        titulo: contenidoPersonalizado?.titulo || 'Diálogo Modal',
+        mostrarTitulo: contenidoPersonalizado?.mostrarTitulo !== false,
+        vista: contenidoPersonalizado,
+        contenido: contenidoPersonalizado?.contenido ?? accion.payload ?? '¿Desea confirmar esta acción?'
       });
     } else if (accion.tipo === 'navegar') {
       const vistaDestino = proyectoActual?.vistas.find(v => v.id === accion.vistaId);
@@ -523,6 +593,8 @@ function App() {
             pestanaActual={pestanaActual}
             onCrearProyecto={handleCrearProyecto}
             onAgregarVista={handleAgregarVista}
+            onEliminarProyecto={handleEliminarProyecto}
+            onEliminarVista={handleEliminarVista}
             onAbrirPestana={handleAbrirPestana}
             componentesReutilizables={componentesReutilizables}
             componenteSeleccionado={componenteSeleccionado}
@@ -539,6 +611,7 @@ function App() {
             modoVistaPrevia={modoVistaPrevia}
             modoTema={modoTema}
             paletaPersonalizada={paletaPersonalizada}
+            paletasTema={proyectoActual?.tema?.paletas || { claro: {}, oscuro: {} }}
             idComponenteSeleccionado={idComponenteSeleccionado}
             bottomSheetActivo={bottomSheetActivo}
             dialogoActivo={dialogoActivo}
@@ -548,6 +621,7 @@ function App() {
             onToggleModoTema={handleToggleModoTema}
             onSeleccionarComponente={handleSeleccionarComponente}
             onEliminarComponente={handleEliminarComponente}
+            onActualizarProp={handleActualizarProp}
             onEjecutarAccion={handleEjecutarAccion}
             onCloseBottomSheet={() => setBottomSheetActivo({ abierto: false, titulo: '', contenido: '' })}
             onCloseDialogo={() => setDialogoActivo({ abierto: false, titulo: '', contenido: '' })}
@@ -569,6 +643,9 @@ function App() {
             onActualizarProp={handleActualizarProp}
             onGuardarComoReutilizable={handleGuardarComoReutilizable}
             onActualizarAccion={handleActualizarAccion}
+            onActualizarOverlays={handleActualizarOverlays}
+            onCrearVistaOverlay={handleCrearVistaOverlay}
+            onActualizarVistaOverlay={handleActualizarVistaOverlay}
             onActualizarLienzo={handleActualizarLienzo}
             onCambiarModoTema={handleCambiarModoTema}
             onActualizarColorTema={handleActualizarColorTema}

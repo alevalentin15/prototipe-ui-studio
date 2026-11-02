@@ -15,7 +15,8 @@ export const CanvasRenderer = ({
   paletaPersonalizada = null,
   onSeleccionarComponente,
   onEliminarComponente,
-  onEjecutarAccion
+  onEjecutarAccion,
+  onActualizarProp
 }) => {
   const {
     isDragging,
@@ -68,18 +69,19 @@ export const CanvasRenderer = ({
 
   const estiloComun = {
     padding: cmp.props.padding ?? (esContenedor ? '16px' : '0'),
-    margin: cmp.props.margin ?? '0',
-    background: bgColor,
+    margin: 0,
+    background: cmp.props.gradient || bgColor,
+    backgroundImage: cmp.props.gradient || undefined,
     color: textColor,
     borderRadius: cmp.props.borderRadius || (esContenedor ? '12px' : '0'),
     fontSize: cmp.props.fontSize || '14px',
     fontWeight: cmp.props.fontWeight || 'normal',
     textAlign: cmp.props.align || 'left',
-    width: anchoCalculado,
+    width: '100%',
     minWidth: cmp.props.minWidth || undefined,
     maxWidth: '100%',
-    alignSelf: cmp.props.width === '100%' ? 'stretch' : undefined,
-    height: cmp.props.height || 'auto',
+    alignSelf: 'stretch',
+    height: (Number(cmp.props.weight) > 0 || cmp.props.fillMaxHeight || cmp.props.height === '100%') ? '100%' : (cmp.props.height || 'auto'),
     minHeight: cmp.props.minHeight || (esContenedor ? '50px' : undefined),
     maxHeight: cmp.props.maxHeight || undefined,
     boxSizing: 'border-box',
@@ -87,8 +89,20 @@ export const CanvasRenderer = ({
     boxShadow: cmp.props.elevation ? `0 ${Number(cmp.props.elevation)}px ${Number(cmp.props.elevation) * 2}px rgba(0,0,0,.16)` : undefined,
     opacity: cmp.props.opacity !== undefined ? cmp.props.opacity : 1,
     position: 'relative',
+    flexGrow: 0,
+    flexShrink: 0,
     cursor: modoVistaPrevia ? 'pointer' : 'default',
     transition: 'all 0.15s ease'
+  };
+
+  const estiloWrapper = {
+    display: 'flex', flexDirection: 'column', position: 'relative', boxSizing: 'border-box',
+    width: cmp.props.weight > 0 ? 'auto' : (cmp.props.fillMaxWidth ? '100%' : anchoCalculado), height: (cmp.props.fillMaxHeight || cmp.props.height === '100%') ? '100%' : (cmp.props.height || 'auto'), minWidth: cmp.props.minWidth || 0,
+    maxWidth: cmp.props.maxWidth || '100%', minHeight: 0, maxHeight: cmp.props.maxHeight || undefined,
+    flexGrow: cmp.props.weight !== undefined ? Number(cmp.props.weight) : 0,
+    flexBasis: Number(cmp.props.weight) > 0 ? 0 : undefined,
+    flexShrink: cmp.props.shrink !== undefined ? Number(cmp.props.shrink) : 1,
+    alignSelf: cmp.props.alignSelf || undefined, margin: cmp.props.margin || 0
   };
 
   // Manejo de clic
@@ -931,6 +945,7 @@ export const CanvasRenderer = ({
                   onSeleccionarComponente={onSeleccionarComponente}
                   onEliminarComponente={onEliminarComponente}
                   onEjecutarAccion={onEjecutarAccion}
+                  onActualizarProp={onActualizarProp}
                 />
               ))
             ) : (
@@ -962,6 +977,12 @@ export const CanvasRenderer = ({
       onDrop={handleElementDrop}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+      style={{ ...estiloWrapper, ...(cmp.props.fixedPosition ? {
+        position: 'absolute', left: 0, right: 0, zIndex: 15,
+        top: cmp.props.fixedPosition === 'top' ? `${cmp.props.fixedOffset || 0}px` : undefined,
+        bottom: cmp.props.fixedPosition === 'bottom' ? `${cmp.props.fixedOffset || 0}px` : undefined
+      } : {}) }}
       className={`relative group transition-all duration-150 ${
         esSeleccionado 
           ? 'outline outline-2 outline-blue-500 z-20 shadow-sm' 
@@ -1005,6 +1026,23 @@ export const CanvasRenderer = ({
       )}
 
       {elementoInterno}
+      {!modoVistaPrevia && esSeleccionado && esContenedor && <div className="absolute inset-0 pointer-events-none z-30">
+        {['n','s','e','w','ne','nw','se','sw'].map(edge => <button key={edge} type="button" aria-label={`Resize ${edge}`} className={`pointer-events-auto absolute h-2.5 w-2.5 rounded-sm border border-white bg-blue-500 shadow ${edge.includes('n') ? 'top-[-5px]' : edge.includes('s') ? 'bottom-[-5px]' : 'top-1/2 -translate-y-1/2'} ${edge.includes('w') ? 'left-[-5px]' : edge.includes('e') ? 'right-[-5px]' : 'left-1/2 -translate-x-1/2'} ${edge.length === 1 ? (edge === 'n' || edge === 's' ? 'cursor-ns-resize' : 'cursor-ew-resize') : edge === 'ne' || edge === 'sw' ? 'cursor-nesw-resize' : 'cursor-nwse-resize'}`} onPointerDown={event => {
+          event.preventDefault(); event.stopPropagation();
+          const host = event.currentTarget.parentElement.parentElement;
+          const rect = host.getBoundingClientRect();
+          const scaleX = rect.width / Math.max(host.offsetWidth, 1); const scaleY = rect.height / Math.max(host.offsetHeight, 1);
+          const startX = event.clientX, startY = event.clientY, startW = rect.width / scaleX, startH = rect.height / scaleY;
+          event.currentTarget.setPointerCapture(event.pointerId);
+          const move = e => { const dx = (e.clientX - startX) / scaleX, dy = (e.clientY - startY) / scaleY; const next = {};
+            if (edge.includes('e') || edge.includes('w')) next.width = `${Math.max(24, Math.round(startW + (edge.includes('w') ? -dx : dx)))}px`;
+            if (edge.includes('n') || edge.includes('s')) next.height = `${Math.max(24, Math.round(startH + (edge.includes('n') ? -dy : dy)))}px`;
+            Object.entries(next).forEach(([key, value]) => onActualizarProp?.(key, value));
+          };
+          const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+          window.addEventListener('pointermove', move); window.addEventListener('pointerup', up, { once: true });
+        }} />)}
+      </div>}
     </div>
   );
 };

@@ -26,7 +26,7 @@ export const RowLayout = ({ props, children, style = {}, className = "" }) => {
   const rowStyle = {
     display: 'flex',
     flexDirection: 'row',
-    flexWrap: props.wrap ? 'wrap' : 'nowrap',
+    flexWrap: props.wrap || ['flowrow', 'floxrow'].includes(String(props.layoutType || '').toLowerCase()) ? 'wrap' : 'nowrap',
     justifyContent: JUSTIFY_MAP[horizontalArrangement] || 'flex-start',
     alignItems: ALIGN_ITEMS_MAP[verticalAlignment] || 'center',
     gap: props.gap || '12px',
@@ -42,6 +42,8 @@ export const RowLayout = ({ props, children, style = {}, className = "" }) => {
     border: props.border || undefined,
     boxSizing: 'border-box',
     position: 'relative',
+    overflowX: props.scrollable ? 'auto' : undefined,
+    overflowY: props.scrollable ? 'hidden' : undefined,
     ...style
   };
 

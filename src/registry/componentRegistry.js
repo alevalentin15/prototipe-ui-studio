@@ -67,6 +67,25 @@ export const COMPONENT_DEFINITIONS = {
     propertySections: ['dimensiones', 'layout_row', 'espaciado', 'estilos']
   },
 
+  LazyColumn: {
+    type: 'LazyColumn', aliases: ['lazycolumn'], name: 'LazyColumn (Lista Vertical)', category: COMPONENT_CATEGORIES.LAYOUTS,
+    icon: 'box', description: 'Lista vertical desplazable con alto configurable.', isContainer: true,
+    defaultProps: { bg: 'transparent', width: '100%', height: '240px', padding: '0', gap: '8px', scrollable: true },
+    propertySections: ['dimensiones', 'layout_column', 'espaciado', 'estilos']
+  },
+  LazyRow: {
+    type: 'LazyRow', aliases: ['lazyrow'], name: 'LazyRow (Lista Horizontal)', category: COMPONENT_CATEGORIES.LAYOUTS,
+    icon: 'layers', description: 'Lista horizontal desplazable con ancho configurable.', isContainer: true,
+    defaultProps: { bg: 'transparent', width: '100%', height: 'auto', padding: '0', gap: '8px', scrollable: true },
+    propertySections: ['dimensiones', 'layout_row', 'espaciado', 'estilos']
+  },
+  FlowRow: {
+    type: 'FlowRow', aliases: ['flowrow', 'floxrow'], name: 'FlowRow (Fila con ajuste)', category: COMPONENT_CATEGORIES.LAYOUTS,
+    icon: 'layers', description: 'Fila flexible que envuelve elementos a la siguiente línea.', isContainer: true,
+    defaultProps: { bg: 'transparent', width: '100%', padding: '0', gap: '8px', wrap: true },
+    propertySections: ['dimensiones', 'layout_row', 'espaciado', 'estilos']
+  },
+
   Column: {
     type: 'Column',
     aliases: ['column', 'contenedor'],

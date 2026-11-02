@@ -10,7 +10,7 @@ export const LayoutRenderer = ({ tipo, props, children, style = {}, className = 
     return <BoxLayout props={props} style={style} className={className}>{children}</BoxLayout>;
   }
 
-  if (normTipo === 'row' || (normTipo === 'contenedor' && props.direccion === 'row')) {
+  if (normTipo === 'row' || normTipo === 'lazyrow' || normTipo === 'flowrow' || normTipo === 'floxrow' || (normTipo === 'contenedor' && props.direccion === 'row')) {
     return <RowLayout props={props} style={style} className={className}>{children}</RowLayout>;
   }
 
