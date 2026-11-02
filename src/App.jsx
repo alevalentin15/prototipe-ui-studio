@@ -57,6 +57,7 @@ function App() {
     { proyectoId: proyectos[0]?.id, vistaId: proyectos[0]?.vistas[0]?.id }
   ]);
   const [pestanaActiva, setPestanaActiva] = useState(0);
+  const [historialNavegacion, setHistorialNavegacion] = useState([]);
 
   // Selección y modos de interfaz
   const [idComponenteSeleccionado, setIdComponenteSeleccionado] = useState(null);
@@ -89,7 +90,8 @@ function App() {
     || proyectoActual?.overlays?.find(v => v.id === pestanaActual?.vistaId);
   const modoTema = proyectoActual?.tema?.modo || 'claro';
   const paletaPersonalizada = obtenerPaletaTema(proyectoActual, modoTema);
-  const componenteSeleccionado = vistaActual ? buscarComponente(vistaActual.componentes, idComponenteSeleccionado) : null;
+  const componenteSeleccionado = vistaActual ? (buscarComponente(vistaActual.componentes, idComponenteSeleccionado)
+    || proyectoActual?.vistas.map(v => buscarComponente(v.componentes, idComponenteSeleccionado)).find(Boolean)) : null;
 
   // Notificaciones Toast
   const mostrarToast = (msg) => {
@@ -240,10 +242,7 @@ function App() {
       if (p.id !== proyectoActual.id) return p;
       return {
         ...p,
-        vistas: p.vistas.map(v => {
-          if (v.id !== vistaActual.id) return v;
-          return { ...v, componentes: eliminarEnArbol(v.componentes, id) };
-        })
+        vistas: p.vistas.map(v => ({ ...v, componentes: eliminarEnArbol(v.componentes, id) }))
       };
     }));
 
@@ -302,16 +301,12 @@ function App() {
       if (p.id !== proyectoActual.id) return p;
       return {
         ...p,
-        vistas: p.vistas.map(v => {
-          if (v.id !== vistaActual.id) return v;
-          return {
-            ...v,
-            componentes: actualizarEnArbol(v.componentes, idComponenteSeleccionado, item => ({
-              ...item,
-              props: { ...item.props, [llave]: valor }
-            }))
-          };
-        })
+        vistas: p.vistas.map(v => ({
+          ...v,
+          componentes: actualizarEnArbol(v.componentes, idComponenteSeleccionado, item => ({
+            ...item, props: { ...item.props, [llave]: valor }
+          }))
+        }))
       };
     }));
   };
@@ -403,6 +398,9 @@ function App() {
 
   // Gestión de pestañas y proyectos
   const handleAbrirPestana = (proyectoId, vistaId) => {
+    const vistaDestino = proyectos.find(p => p.id === proyectoId)?.vistas.find(v => v.id === vistaId);
+    setIdComponenteSeleccionado(vistaDestino?.tipoOverlay ? 'canvas' : null);
+    if (vistaDestino?.tipoOverlay) setPestanaInspector('lienzo');
     const indiceExistente = pestanasAbiertas.findIndex(t => t.proyectoId === proyectoId && t.vistaId === vistaId);
     if (indiceExistente >= 0) {
       setPestanaActiva(indiceExistente);
@@ -476,11 +474,19 @@ function App() {
       tipoOverlay: tipo,
       titulo: tipo === 'bottomsheet' ? 'Nuevo menú' : 'Nueva confirmación',
       mostrarTitulo: true,
+      showCloseButton: true, closeOnOutside: true, bg: 'surface', textColor: 'onSurface', outlineColor: 'outlineVariant',
+      backdropColor: tipo === 'dialog' ? 'rgba(0,0,0,.68)' : 'rgba(0,0,0,.60)',
+      borderRadius: tipo === 'dialog' ? '16px' : '20px', overlayPadding: '20px',
+      showConfirmButton: true, showCancelButton: true, confirmText: 'Aceptar', cancelText: 'Cancelar',
+      showCloseActionButton: true, closeText: 'Cerrar', showHandle: true,
+      primaryButtonColor: 'primary', confirmTextColor: 'onPrimary', cancelButtonColor: 'surfaceVariant', handleColor: 'onSurfaceVariant',
       dispositivo: 'web', ancho: tipo === 'bottomsheet' ? 375 : 420, alto: tipo === 'bottomsheet' ? 360 : 320,
       padding: 16, gap: 12, direccion: 'column', bg: 'surface', componentes: []
     };
     setProyectos(prev => prev.map(p => p.id === proyectoActual.id ? { ...p, vistas: [...p.vistas, nueva] } : p));
     handleAbrirPestana(proyectoActual.id, nueva.id);
+    setIdComponenteSeleccionado('canvas');
+    setPestanaInspector('lienzo');
     return nueva;
   };
 
@@ -538,11 +544,24 @@ function App() {
     } else if (accion.tipo === 'navegar') {
       const vistaDestino = proyectoActual?.vistas.find(v => v.id === accion.vistaId);
       if (vistaDestino) {
+        if (pestanaActual?.vistaId !== vistaDestino.id) setHistorialNavegacion(prev => [...prev, pestanaActual].filter(Boolean));
         handleAbrirPestana(proyectoActual.id, vistaDestino.id);
         mostrarToast(`Navegando a: ${vistaDestino.nombre}`);
       }
     }
   };
+
+  const handleDeviceBack = () => {
+    const destino = historialNavegacion.at(-1);
+    if (!destino) { mostrarToast('No hay una pantalla anterior.'); return; }
+    setHistorialNavegacion(prev => prev.slice(0, -1));
+    handleAbrirPestana(destino.proyectoId, destino.vistaId);
+  };
+  const handleDeviceHome = () => {
+    const home = proyectoActual?.vistas.find(view => !view.tipoOverlay);
+    if (home) { setHistorialNavegacion([]); handleAbrirPestana(proyectoActual.id, home.id); }
+  };
+  const handleDeviceRecent = handleDeviceBack;
 
   // Importar archivo JSON
   const handleImportarJSON = (e) => {
@@ -623,6 +642,9 @@ function App() {
             onEliminarComponente={handleEliminarComponente}
             onActualizarProp={handleActualizarProp}
             onEjecutarAccion={handleEjecutarAccion}
+            onDeviceBack={handleDeviceBack}
+            onDeviceHome={handleDeviceHome}
+            onDeviceRecent={handleDeviceRecent}
             onCloseBottomSheet={() => setBottomSheetActivo({ abierto: false, titulo: '', contenido: '' })}
             onCloseDialogo={() => setDialogoActivo({ abierto: false, titulo: '', contenido: '' })}
             onConfirmDialogo={() => {

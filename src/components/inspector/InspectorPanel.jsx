@@ -97,6 +97,7 @@ export const InspectorPanel = ({
         {pestanaInspector === 'propiedades' && (
           <PropertiesTab
             componenteSeleccionado={componenteSeleccionado}
+            proyectoActual={proyectoActual}
             modoTema={modoTema}
             paletaPersonalizada={paletaPersonalizada}
             onActualizarProp={onActualizarProp}

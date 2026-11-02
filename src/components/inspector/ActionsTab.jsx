@@ -1,5 +1,21 @@
-import React from 'react';
+﻿import React from 'react';
 import { Icon } from '../common/Icon.jsx';
+
+const valoresOverlayDefault = tipo => ({ tipoOverlay: tipo, titulo: tipo === 'dialog' ? 'Nueva confirmaciÃ³n' : 'Nuevo menÃº', mostrarTitulo: true, showCloseButton: true, closeOnOutside: true, bg: 'surface', textColor: 'onSurface', outlineColor: 'outlineVariant', backdropColor: 'rgba(0,0,0,.65)', borderRadius: tipo === 'dialog' ? '16px' : '20px', overlayPadding: '20px', showConfirmButton: true, showCancelButton: true, confirmText: 'Aceptar', cancelText: 'Cancelar', showCloseActionButton: true, closeText: 'Cerrar', showHandle: true, primaryButtonColor: 'primary', confirmTextColor: 'onPrimary', cancelButtonColor: 'surfaceVariant', handleColor: 'onSurfaceVariant' });
+
+const OverlayProjectEditor = ({ views, onUpdate }) => views.map(view => {
+  const patch = changes => onUpdate?.(view.id, changes);
+  const check = (key, label) => <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={view[key] !== false} onChange={e => patch({ [key]: e.target.checked })} />{label}</label>;
+  const field = (key, label, fallback = '') => <label className="block text-slate-400">{label}<input value={view[key] ?? fallback} onChange={e => patch({ [key]: e.target.value })} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>;
+  return <div key={view.id} className="space-y-2 rounded border border-slate-800 bg-slate-950 p-2.5">
+    <div className="flex items-center justify-between"><strong className="text-slate-200">{view.nombre}</strong><button type="button" onClick={() => patch(valoresOverlayDefault(view.tipoOverlay))} className="text-[10px] text-teal-400">Restablecer valores</button></div>
+    {check('mostrarTitulo', 'Mostrar tÃ­tulo')}{field('titulo', 'TÃ­tulo')}{check('showCloseButton', 'Mostrar icono cerrar')}{check('closeOnOutside', 'Cerrar al tocar fuera')}
+    {view.tipoOverlay === 'dialog' ? <>{check('showCancelButton', 'Mostrar botÃ³n cancelar')}{check('showConfirmButton', 'Mostrar botÃ³n confirmar')}{field('cancelText', 'Texto cancelar', 'Cancelar')}{field('confirmText', 'Texto confirmar', 'Aceptar')}</> : <>{check('showHandle', 'Mostrar indicador')}{check('showCloseActionButton', 'Mostrar botÃ³n cerrar')}{field('closeText', 'Texto botÃ³n cerrar', 'Cerrar')}</>}
+    <div className="grid grid-cols-2 gap-2">{field('bg', 'Fondo (token/HEX)', 'surface')}{field('textColor', 'Texto (token/HEX)', 'onSurface')}{field('primaryButtonColor', 'AcciÃ³n (token/HEX)', 'primary')}{field('cancelButtonColor', 'Secundario (token/HEX)', 'surfaceVariant')}{field('outlineColor', 'Borde (token/HEX)', 'outlineVariant')}{field('backdropColor', 'Fondo exterior', 'rgba(0,0,0,.65)')}</div>
+    <div className="grid grid-cols-2 gap-2">{field('borderRadius', 'Radio', '16px')}{field('overlayPadding', 'Padding', '20px')}</div>
+    {view.tipoOverlay === 'dialog' && <div className="grid grid-cols-2 gap-2">{field('confirmTextColor', 'Texto botÃ³n', 'onPrimary')}{field('dialogWidth', 'Ancho', '100%')}</div>}
+  </div>;
+});
 
 export const ActionsTab = ({
   componenteSeleccionado,
@@ -31,7 +47,7 @@ export const ActionsTab = ({
       </div>
 
       <div className="space-y-1">
-        <label className="text-slate-400">Seleccionar Acción</label>
+        <label className="text-slate-400">Seleccionar AcciÃ³n</label>
         <select
           value={componenteSeleccionado.accion?.tipo || 'ninguna'}
           onChange={(e) => {
@@ -41,10 +57,10 @@ export const ActionsTab = ({
           }}
           className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none"
         >
-          <option value="ninguna">Sin Acción</option>
-          <option value="bottomsheet">Abrir Bottom Sheet (Móvil)</option>
-          <option value="dialog">Abrir Diálogo Modal</option>
-          <option value="alerta">Lanzar Alerta / Notificación</option>
+          <option value="ninguna">Sin AcciÃ³n</option>
+          <option value="bottomsheet">Abrir Bottom Sheet (MÃ³vil)</option>
+          <option value="dialog">Abrir DiÃ¡logo Modal</option>
+          <option value="alerta">Lanzar Alerta / NotificaciÃ³n</option>
           <option value="navegar">Navegar a otra Vista</option>
         </select>
       </div>
@@ -69,7 +85,7 @@ export const ActionsTab = ({
             <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-slate-400">Contenido reutilizable</label>
-                <select value={componenteSeleccionado.accion.vistaId || componenteSeleccionado.accion.overlayId || ''} onChange={(e) => onActualizarAccion({ ...componenteSeleccionado.accion, vistaId: e.target.value || undefined })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-slate-200">
+                <select value={componenteSeleccionado.accion.vistaId || componenteSeleccionado.accion.overlayId || ''} onChange={(e) => onActualizarAccion({ ...componenteSeleccionado.accion, vistaId: e.target.value || undefined, overlayId: undefined })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-slate-200">
                   <option value="">Contenido directo del evento</option>
                   {overlays.filter(item => (item.tipoOverlay || item.tipo) === componenteSeleccionado.accion.tipo).map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)}
                 </select>
@@ -91,7 +107,7 @@ export const ActionsTab = ({
         </div>
       )}
 
-      {overlays.length > 0 && <div className="space-y-2 border-t border-slate-800 pt-3"><div className="text-slate-300 font-semibold">Overlays como vistas</div>{overlays.map(item => <div key={item.id} className="space-y-2 rounded border border-slate-800 bg-slate-950 p-2"><div className="text-[10px] text-slate-500">El contenido se edita como componentes en su vista del árbol del proyecto.</div><input value={item.nombre} onChange={e => onActualizarVistaOverlay?.(item.id, { nombre: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" aria-label="Nombre del overlay" /><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={item.mostrarTitulo !== false} onChange={e => onActualizarVistaOverlay?.(item.id, { mostrarTitulo: e.target.checked })} />Mostrar título</label><input value={item.titulo || ''} onChange={e => onActualizarVistaOverlay?.(item.id, { titulo: e.target.value })} disabled={item.mostrarTitulo === false} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 disabled:opacity-50" placeholder="Título del sheet/dialog" /></div>)}</div>}
+      {overlays.length > 0 && <div className="space-y-2 border-t border-slate-800 pt-3"><div className="text-slate-300 font-semibold">Overlays del proyecto</div><OverlayProjectEditor views={overlays} onUpdate={onActualizarVistaOverlay} /></div>}
     </div>
   );
 };

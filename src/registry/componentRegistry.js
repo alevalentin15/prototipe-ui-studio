@@ -103,7 +103,7 @@ export const COMPONENT_DEFINITIONS = {
       maxWidth: '100%',
       height: 'auto',
       verticalArrangement: 'start',
-      horizontalAlignment: 'stretch',
+      horizontalAlignment: 'start',
       gap: '12px'
     },
     propertySections: ['dimensiones', 'layout_column', 'espaciado', 'estilos']
@@ -129,7 +129,7 @@ export const COMPONENT_DEFINITIONS = {
       height: 'auto',
       gap: '12px',
       direccion: 'column',
-      horizontalAlignment: 'stretch',
+      horizontalAlignment: 'start',
       verticalAlignment: 'start'
     },
     propertySections: ['dimensiones', 'layout_column', 'espaciado', 'estilos']
@@ -172,6 +172,12 @@ export const COMPONENT_DEFINITIONS = {
       titulo: 'Título de Pantalla',
       navigationIcon: 'menu',
       actionIcon: 'moreVertical',
+      showNavigationIcon: true,
+      showActionIcon: true,
+      showTitle: true,
+      titleType: 'text',
+      fixedPosition: 'top',
+      applyToScreens: 'current',
       bg: 'surface',
       textColor: 'onSurface',
       padding: '12px 16px',
@@ -193,6 +199,8 @@ export const COMPONENT_DEFINITIONS = {
     defaultProps: {
       items: 'Inicio:home, Buscar:search, Perfil:user',
       activo: 0,
+      fixedPosition: 'bottom',
+      applyToScreens: 'current',
       bg: 'surface',
       textColor: 'onSurfaceVariant',
       activeColor: 'primary',
@@ -770,7 +778,7 @@ Object.assign(COMPONENT_DEFINITIONS, {
   }),
   BottomAppBar: definirComponenteBloque3('BottomAppBar', COMPONENT_CATEGORIES.NAVEGACION, {
     name: 'Bottom App Bar', icon: 'layers', propertySections: ['contenido_navigationbar', 'dimensiones', 'espaciado', 'estilos'],
-    defaultProps: { items: 'menu:menu, buscar:search, agregar:plus', bg: 'surface', textColor: 'onSurfaceVariant', width: '100%', padding: '12px 16px', borderRadius: '16px' }
+    defaultProps: { items: 'menu:menu, buscar:search, agregar:plus', bg: 'surface', textColor: 'onSurfaceVariant', width: '100%', padding: '12px 16px', borderRadius: '16px', fixedPosition: 'bottom', applyToScreens: 'current' }
   })
 });
 

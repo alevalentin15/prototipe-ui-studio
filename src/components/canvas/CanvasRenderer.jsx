@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Icon } from '../common/Icon.jsx';
 import { LayoutRenderer } from '../../layouts/LayoutRenderer.jsx';
 import { DropIndicator } from '../../dnd/DropIndicator.jsx';
@@ -44,14 +44,14 @@ export const CanvasRenderer = ({
   const esContenedor = def?.isContainer || Boolean(cmp.hijos);
   const esSeleccionado = idComponenteSeleccionado === cmp.id && !modoVistaPrevia;
 
-  // Determinar la orientación interna para sus hijos
+  // Determinar la orientaciÃ³n interna para sus hijos
   let orientacionHijos = 'vertical';
   const normTipo = String(cmp.tipo).toLowerCase();
   if (normTipo === 'row' || (normTipo === 'contenedor' && cmp.props?.direccion === 'row')) {
     orientacionHijos = 'horizontal';
   }
 
-  // Resolver colores semánticos de Material 3
+  // Resolver colores semÃ¡nticos de Material 3
   const bgColor = resolveM3Color(
     cmp.props.bg || (esContenedor ? 'surface' : 'transparent'),
     modoTema,
@@ -63,9 +63,9 @@ export const CanvasRenderer = ({
     paletaPersonalizada
   );
 
-  // Evitar desbordamiento horizontal cuando hay márgenes y width = 100%
+  // Evitar desbordamiento horizontal cuando hay mÃ¡rgenes y width = 100%
   const tieneMargen = cmp.props.margin && cmp.props.margin !== '0' && cmp.props.margin !== '0px';
-  const anchoCalculado = (cmp.props.width === '100%' && tieneMargen) ? 'auto' : (cmp.props.width || cmp.props.ancho || '100%');
+  const anchoCalculado = (cmp.props.width === '100%' && tieneMargen) ? 'auto' : (cmp.props.width || cmp.props.ancho || (esContenedor ? '100%' : 'auto'));
 
   const estiloComun = {
     padding: cmp.props.padding ?? (esContenedor ? '16px' : '0'),
@@ -80,7 +80,7 @@ export const CanvasRenderer = ({
     width: '100%',
     minWidth: cmp.props.minWidth || undefined,
     maxWidth: '100%',
-    alignSelf: 'stretch',
+    alignSelf: cmp.props.alignSelf || (cmp.props.fillMaxWidth ? 'stretch' : 'auto'),
     height: (Number(cmp.props.weight) > 0 || cmp.props.fillMaxHeight || cmp.props.height === '100%') ? '100%' : (cmp.props.height || 'auto'),
     minHeight: cmp.props.minHeight || (esContenedor ? '50px' : undefined),
     maxHeight: cmp.props.maxHeight || undefined,
@@ -97,7 +97,7 @@ export const CanvasRenderer = ({
 
   const estiloWrapper = {
     display: 'flex', flexDirection: 'column', position: 'relative', boxSizing: 'border-box',
-    width: cmp.props.weight > 0 ? 'auto' : (cmp.props.fillMaxWidth ? '100%' : anchoCalculado), height: (cmp.props.fillMaxHeight || cmp.props.height === '100%') ? '100%' : (cmp.props.height || 'auto'), minWidth: cmp.props.minWidth || 0,
+    width: cmp.props.weight > 0 ? 'auto' : (cmp.props.fillMaxWidth ? '100%' : anchoCalculado), height: (cmp.props.weight > 0 || cmp.props.fillMaxHeight || cmp.props.height === '100%') ? '100%' : (cmp.props.height || 'auto'), minWidth: cmp.props.minWidth || 0,
     maxWidth: cmp.props.maxWidth || '100%', minHeight: 0, maxHeight: cmp.props.maxHeight || undefined,
     flexGrow: cmp.props.weight !== undefined ? Number(cmp.props.weight) : 0,
     flexBasis: Number(cmp.props.weight) > 0 ? 0 : undefined,
@@ -201,7 +201,7 @@ export const CanvasRenderer = ({
     }
   };
 
-  // Renderizado específico según tipo (Material 3 + Bloque 1)
+  // Renderizado especÃ­fico segÃºn tipo (Material 3 + Bloque 1)
   let elementoInterno = null;
   const tipoLimpio = String(cmp.tipo).toLowerCase();
 
@@ -253,7 +253,7 @@ export const CanvasRenderer = ({
           }}
           onClick={handleClick}
           className={`hover:bg-slate-500/10 active:scale-95 transition ${cmp.props.checked ? 'ring-2 ring-current' : ''}`}
-          title={cmp.etiqueta || 'Botón de Ícono'}
+          title={cmp.etiqueta || 'BotÃ³n de Ãcono'}
         >
           <Icon name={cmp.props.icon || 'settings'} className="w-5 h-5" />
         </button>
@@ -306,10 +306,10 @@ export const CanvasRenderer = ({
       const color = resolveM3Color(cmp.props.color || 'primary', modoTema, paletaPersonalizada);
       elementoInterno = (
         <div style={estiloComun} className="space-y-1.5">
-          <div className="flex justify-between text-xs"><span>{cmp.props.etiqueta || 'Rango'}</span><span className="font-mono">{start} – {end}</span></div>
+          <div className="flex justify-between text-xs"><span>{cmp.props.etiqueta || 'Rango'}</span><span className="font-mono">{start} â€“ {end}</span></div>
           <div className="flex items-center gap-2">
-            <input aria-label="Valor mínimo del rango" type="range" min={min} max={end} value={start} onChange={(e) => setRangeStart(Number(e.target.value))} style={{ accentColor: color }} className="w-full" onClick={handleClick} />
-            <input aria-label="Valor máximo del rango" type="range" min={start} max={max} value={end} onChange={(e) => setRangeEnd(Number(e.target.value))} style={{ accentColor: color }} className="w-full" onClick={handleClick} />
+            <input aria-label="Valor mÃ­nimo del rango" type="range" min={min} max={end} value={start} onChange={(e) => setRangeStart(Number(e.target.value))} style={{ accentColor: color }} className="w-full" onClick={handleClick} />
+            <input aria-label="Valor mÃ¡ximo del rango" type="range" min={start} max={max} value={end} onChange={(e) => setRangeEnd(Number(e.target.value))} style={{ accentColor: color }} className="w-full" onClick={handleClick} />
           </div>
         </div>
       );
@@ -328,7 +328,7 @@ export const CanvasRenderer = ({
         >
           <Icon name="search" className="w-4 h-4 opacity-70 shrink-0" />
           <span className="text-xs truncate flex-1 opacity-80">
-            {cmp.props.query || cmp.props.placeholder || 'Buscar en la aplicación...'}
+            {cmp.props.query || cmp.props.placeholder || 'Buscar en la aplicaciÃ³n...'}
           </span>
         </div>
       );
@@ -348,7 +348,7 @@ export const CanvasRenderer = ({
             {cmp.props.checked && <Icon name="check" className="w-3.5 h-3.5 text-white stroke-[3]" />}
           </div>
           <span className="text-xs select-none">
-            {cmp.props.etiqueta || 'Opción Checkbox'}
+            {cmp.props.etiqueta || 'OpciÃ³n Checkbox'}
           </span>
         </div>
       );
@@ -368,7 +368,7 @@ export const CanvasRenderer = ({
             {cmp.props.selected && <div style={{ background: colorRadio }} className="w-2.5 h-2.5 rounded-full" />}
           </div>
           <span className="text-xs select-none">
-            {cmp.props.etiqueta || 'Opción Radio'}
+            {cmp.props.etiqueta || 'OpciÃ³n Radio'}
           </span>
         </div>
       );
@@ -413,7 +413,7 @@ export const CanvasRenderer = ({
             }}
             className="flex items-center justify-between px-3 py-2 border border-slate-700/30 text-xs shadow-sm cursor-pointer"
           >
-            <span className="truncate">{cmp.props.seleccionado || 'Seleccionar opción...'}</span>
+            <span className="truncate">{cmp.props.seleccionado || 'Seleccionar opciÃ³n...'}</span>
             <Icon name="chevronDown" className="w-3.5 h-3.5 opacity-60 ml-2" />
           </div>
         </div>
@@ -454,7 +454,7 @@ export const CanvasRenderer = ({
       const colorSwitch = resolveM3Color(cmp.props.color || 'primary', modoTema, paletaPersonalizada);
       elementoInterno = (
         <div style={estiloComun} onClick={handleClick} className="flex items-center justify-between p-2 rounded bg-slate-800/20 border border-slate-700/30">
-          <span className="text-xs">{cmp.props.etiqueta || 'Función'}</span>
+          <span className="text-xs">{cmp.props.etiqueta || 'FunciÃ³n'}</span>
           <div
             style={{ background: cmp.props.checked ? colorSwitch : '#475569' }}
             className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition ${cmp.props.checked ? 'justify-end' : 'justify-start'}`}
@@ -512,7 +512,7 @@ export const CanvasRenderer = ({
       );
       break;
 
-    // ==================== BLOQUE 2: NAVEGACIÓN, LISTAS Y FEEDBACK ====================
+    // ==================== BLOQUE 2: NAVEGACIÃ“N, LISTAS Y FEEDBACK ====================
     case 'topappbar':
     case 'appbar': {
       const barBg = resolveM3Color(cmp.props.bg || 'surface', modoTema, paletaPersonalizada);
@@ -529,14 +529,14 @@ export const CanvasRenderer = ({
           className="flex items-center justify-between px-4 py-3 shadow-sm border-b border-slate-700/20"
         >
           <div className="flex items-center gap-3">
-            <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button">
+            {cmp.props.showNavigationIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { if (modoVistaPrevia) e.stopPropagation(); }}>
               <Icon name={cmp.props.navigationIcon || 'menu'} className="w-5 h-5" />
-            </button>
-            <span className="font-semibold text-sm truncate">{cmp.props.titulo || 'Título de Pantalla'}</span>
+            </button>}
+{cmp.props.showTitle !== false && cmp.props.titleType !== 'none' && (cmp.props.titleType === 'image' ? <img src={cmp.props.titleImage || ''} alt={cmp.props.titulo || 'Title'} className="max-h-8 max-w-36 object-contain" /> : cmp.props.titleType === 'icon' ? <Icon name={cmp.props.titleIcon || 'home'} className="w-5 h-5" /> : <span className="font-semibold text-sm truncate">{cmp.props.titulo}</span>)}
           </div>
-          <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button">
+          {cmp.props.showActionIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { if (modoVistaPrevia) e.stopPropagation(); }}>
             <Icon name={cmp.props.actionIcon || 'moreVertical'} className="w-5 h-5" />
-          </button>
+          </button>}
         </div>
       );
       break;
@@ -548,12 +548,15 @@ export const CanvasRenderer = ({
       const navText = resolveM3Color(cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
       const actColor = resolveM3Color(cmp.props.activeColor || 'primary', modoTema, paletaPersonalizada);
       const actContainer = resolveM3Color(cmp.props.activeContainer || 'secondaryContainer', modoTema, paletaPersonalizada);
+      const activeIconColor = resolveM3Color(cmp.props.activeIconColor || 'onSecondaryContainer', modoTema, paletaPersonalizada);
+      const inactiveIconColor = resolveM3Color(cmp.props.inactiveIconColor || cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
+      const navStyle = cmp.props.navigationStyle || 'pill';
 
       const rawItems = cmp.props.items || 'Inicio:home, Buscar:search, Perfil:user';
       const itemsList = typeof rawItems === 'string'
         ? rawItems.split(',').map(s => {
-            const [label, icon] = s.trim().split(':');
-            return { label: label?.trim() || 'Item', icon: icon?.trim() || 'home' };
+            const [label, icon, viewId] = s.trim().split(':');
+            return { label: label?.trim() || 'Item', icon: icon?.trim() || 'home', viewId: viewId?.trim() };
           })
         : Array.isArray(rawItems) ? rawItems : [];
       const activoIdx = Number(cmp.props.activo || 0);
@@ -573,23 +576,24 @@ export const CanvasRenderer = ({
             return (
               <div
                 key={idx}
-                className="flex flex-col items-center gap-1 cursor-pointer py-1 px-2 transition-all flex-1"
+                onClick={e => { e.stopPropagation(); if (modoVistaPrevia && item.viewId) onEjecutarAccion({ tipo: 'navegar', vistaId: item.viewId }); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }}
+                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 cursor-pointer py-1 px-1 transition-all"
               >
                 <div
                   style={{
-                    backgroundColor: isSelected ? actContainer : 'transparent',
-                    color: isSelected ? actColor : navText
+                    backgroundColor: isSelected && navStyle === 'pill' ? actContainer : isSelected && navStyle === 'icon' ? actContainer : 'transparent',
+                    color: isSelected ? (navStyle === 'icon' ? activeIconColor : actColor) : inactiveIconColor
                   }}
-                  className="px-4 py-1 rounded-full flex items-center justify-center transition-all"
+                  className={`w-16 h-8 shrink-0 mx-auto rounded-full flex items-center justify-center transition-all ${navStyle === 'icon' ? 'w-9 h-9' : ''}`}
                 >
                   <Icon name={item.icon || 'home'} className="w-5 h-5" />
                 </div>
-                <span
+                {cmp.props.showLabels !== false && <span
                   style={{ color: isSelected ? actColor : navText }}
                   className={`text-[10px] font-medium truncate ${isSelected ? 'font-bold' : ''}`}
                 >
                   {item.label}
-                </span>
+                </span>}
               </div>
             );
           })}
@@ -599,7 +603,7 @@ export const CanvasRenderer = ({
     }
 
     case 'segmentedbutton': {
-      const options = String(cmp.props.items || 'Día, Semana, Mes').split(',').map(item => item.trim()).filter(Boolean);
+      const options = String(cmp.props.items || 'DÃ­a, Semana, Mes').split(',').map(item => item.trim()).filter(Boolean);
       const activeBg = resolveM3Color(cmp.props.activeColor || 'secondaryContainer', modoTema, paletaPersonalizada);
       const activeText = resolveM3Color(cmp.props.activeTextColor || 'onSecondaryContainer', modoTema, paletaPersonalizada);
       elementoInterno = (
@@ -639,16 +643,16 @@ export const CanvasRenderer = ({
     case 'bottomappbar': {
       const rawItems = String(cmp.props.items || 'menu:menu, buscar:search, agregar:plus');
       const items = rawItems.split(',').map(entry => {
-        const [label, icon] = entry.trim().split(':');
-        return { label: label || 'Acción', icon: icon || 'menu' };
+        const [label, icon, viewId] = entry.trim().split(':');
+        return { label: label || 'AcciÃ³n', icon: icon || 'menu', viewId: viewId?.trim() };
       });
       const barBg = resolveM3Color(cmp.props.bg || 'surface', modoTema, paletaPersonalizada);
       const fabBg = resolveM3Color('primaryContainer', modoTema, paletaPersonalizada);
       const fabText = resolveM3Color('onPrimaryContainer', modoTema, paletaPersonalizada);
       elementoInterno = (
         <div style={{ ...estiloComun, background: barBg, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }} onClick={handleClick}>
-          {items.map((item, index) => <button type="button" key={`${item.label}-${index}`} className="p-2 rounded-full hover:bg-slate-500/10" title={item.label}><Icon name={item.icon} className="w-5 h-5" /></button>)}
-          <button type="button" style={{ background: fabBg, color: fabText }} className="w-14 h-14 -mt-8 rounded-2xl shadow-lg" title="Acción principal"><Icon name="plus" className="w-6 h-6" /></button>
+          {items.map((item, index) => <button type="button" key={`${item.label}-${index}`} onClick={e => { e.stopPropagation(); if (modoVistaPrevia && item.viewId) onEjecutarAccion({ tipo: 'navegar', vistaId: item.viewId }); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }} className="p-2 rounded-full hover:bg-slate-500/10" title={item.label}><Icon name={item.icon} className="w-5 h-5" />{cmp.props.showLabels && <span className="text-[10px] ml-1">{item.label}</span>}</button>)}
+          <button type="button" style={{ background: fabBg, color: fabText }} className="w-14 h-14 -mt-8 rounded-2xl shadow-lg" title="AcciÃ³n principal"><Icon name="plus" className="w-6 h-6" /></button>
         </div>
       );
       break;
@@ -660,7 +664,7 @@ export const CanvasRenderer = ({
       const tabsText = resolveM3Color(cmp.props.textColor || 'onSurface', modoTema, paletaPersonalizada);
       const indColor = resolveM3Color(cmp.props.indicatorColor || 'primary', modoTema, paletaPersonalizada);
 
-      const rawTabs = cmp.props.tabs || 'General, Detalles, Configuración';
+      const rawTabs = cmp.props.tabs || 'General, Detalles, ConfiguraciÃ³n';
       const tabsList = typeof rawTabs === 'string'
         ? rawTabs.split(',').map(s => s.trim()).filter(Boolean)
         : Array.isArray(rawTabs) ? rawTabs : [];
@@ -727,7 +731,7 @@ export const CanvasRenderer = ({
             )}
             <div className="truncate">
               <span className="text-xs font-medium block truncate">
-                {cmp.props.headline || cmp.props.texto || 'Título del Elemento'}
+                {cmp.props.headline || cmp.props.texto || 'TÃ­tulo del Elemento'}
               </span>
               {cmp.props.supportingText && (
                 <span style={{ color: itemSub }} className="text-[11px] block truncate opacity-80">
@@ -813,8 +817,10 @@ export const CanvasRenderer = ({
     case 'circularprogress':
     case 'spinner': {
       const spColor = resolveM3Color(cmp.props.color || 'primary', modoTema, paletaPersonalizada);
+      const spTrackColor = resolveM3Color(cmp.props.trackColor || 'surfaceVariant', modoTema, paletaPersonalizada);
       const spSize = cmp.props.size || '36px';
-      const stroke = cmp.props.strokeWidth || '4px';
+      const stroke = Number.parseFloat(cmp.props.strokeWidth) || 4;
+      const circumference = 2 * Math.PI * 9;
 
       elementoInterno = (
         <div
@@ -829,22 +835,24 @@ export const CanvasRenderer = ({
           onClick={handleClick}
           className="p-1"
         >
-          <svg className="animate-spin w-full h-full" viewBox="0 0 24 24" fill="none">
+          <svg className="animate-spin w-full h-full" viewBox="0 0 24 24" fill="none" aria-label="Cargando">
             <circle
-              className="opacity-25"
+              style={{ stroke: spTrackColor, opacity: 0.28 }}
               cx="12"
               cy="12"
-              r="10"
+              r="9"
               stroke="currentColor"
               strokeWidth={stroke}
             />
-            <path
-              style={{ stroke: spColor }}
-              className="opacity-90"
+            <circle
+              style={{ stroke: spColor, strokeDasharray: `${circumference * 0.72} ${circumference}`, transformOrigin: '12px 12px' }}
               fill="none"
+              cx="12"
+              cy="12"
+              r="9"
+              transform="rotate(-90 12 12)"
               strokeWidth={stroke}
               strokeLinecap="round"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
         </div>
@@ -905,7 +913,7 @@ export const CanvasRenderer = ({
           className="flex items-center justify-between shadow-xl border border-slate-700/30 text-xs w-full"
         >
           <span className="truncate flex-1 font-medium mr-2">
-            {cmp.props.mensaje || cmp.props.texto || 'Mensaje de notificación'}
+            {cmp.props.mensaje || cmp.props.texto || 'Mensaje de notificaciÃ³n'}
           </span>
           {cmp.props.actionText && (
             <button
@@ -1007,7 +1015,7 @@ export const CanvasRenderer = ({
         </div>
       )}
 
-      {/* Badge de selección activo con nombre y botón de eliminar */}
+      {/* Badge de selecciÃ³n activo con nombre y botÃ³n de eliminar */}
       {!modoVistaPrevia && esSeleccionado && (
         <div className="absolute -top-6 left-0 bg-blue-600 text-[10px] text-white px-2 py-0.5 rounded-t flex items-center gap-1.5 z-30 font-medium shadow-md">
           <Icon name="grip" className="w-3 h-3 cursor-grab" />

@@ -44,14 +44,14 @@ export const proyectosIniciales = [
             id: 'cmp-4',
             tipo: 'Button',
             etiqueta: 'Abrir Menú Inferior',
-            props: { texto: 'Abrir Opciones Rápidas', bg: 'secondary', textColor: 'onSecondary', borderRadius: '20px', padding: '12px 20px', width: '100%' },
+            props: { texto: 'Abrir Opciones Rápidas', bg: 'secondary', textColor: 'onSecondary', borderRadius: '20px', padding: '12px 20px', width: 'auto' },
             accion: { tipo: 'bottomsheet', payload: 'Acciones rápidas del usuario:\n1. Ver Perfil\n2. Métodos de Pago\n3. Soporte' }
           },
           {
             id: 'cmp-5',
             tipo: 'Button',
             etiqueta: 'Diálogo de Confirmación',
-            props: { texto: 'Confirmar Pedido', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '12px 20px', width: '100%' },
+            props: { texto: 'Confirmar Pedido', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '12px 20px', width: 'auto' },
             accion: { tipo: 'dialog', payload: '¿Deseas procesar tu compra por $49.99 USD?' }
           }
         ]

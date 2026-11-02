@@ -4,6 +4,7 @@ import { isSemanticToken, resolveM3Color } from '../../theme/materialTheme.js';
 
 export const PropertiesTab = ({
   componenteSeleccionado,
+  proyectoActual,
   modoTema = 'claro',
   paletaPersonalizada = null,
   onActualizarProp,
@@ -476,6 +477,12 @@ export const PropertiesTab = ({
               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 font-mono text-[11px]"
             />
           </div>
+          <label className="block text-slate-400">Estilo del elemento activo
+            <select value={props.navigationStyle || 'pill'} onChange={e => onActualizarProp('navigationStyle', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200">
+              <option value="color">Color en icono y texto</option><option value="pill">Indicador tipo píldora</option><option value="icon">Fondo detrás del icono</option>
+            </select>
+          </label>
+          {[['activeColor', 'Color activo (token o HEX)', 'primary'], ['activeContainer', 'Fondo activo (token o HEX)', 'secondaryContainer'], ['activeIconColor', 'Color del icono activo', 'onSecondaryContainer'], ['textColor', 'Color inactivo', 'onSurfaceVariant'], ['bg', 'Fondo de barra', 'surface']].map(([key, label, fallback]) => <label key={key} className="block text-slate-400">{label}<input value={props[key] || fallback} onChange={e => onActualizarProp(key, e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-[10px]" /></label>)}
           <div className="space-y-1">
             <label className="text-slate-400 block mb-1">Índice Activo (0, 1, 2...)</label>
             <input
@@ -865,6 +872,20 @@ export const PropertiesTab = ({
       )}
 
       {/* SECCIÓN: DIMENSIONES */}
+      {['topappbar', 'appbar', 'navigationbar', 'bottomnav', 'bottomappbar'].includes(String(componenteSeleccionado.tipo).toLowerCase()) && <div className="space-y-2 border-b border-slate-800 pb-3">
+        <span className="font-semibold text-slate-300 block text-[11px]">Alcance de la barra</span>
+        <label className="text-slate-400 block">Aplicar en<select value={props.applyToScreens || 'current'} onChange={e => onActualizarProp('applyToScreens', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"><option value="current">Esta pantalla</option><option value="all">Todas las pantallas</option><option value="selected">Pantallas seleccionadas</option></select></label>
+        {props.applyToScreens === 'selected' && <label className="text-slate-400 block">IDs de pantalla separados por coma<input value={Array.isArray(props.screenIds) ? props.screenIds.join(', ') : (props.screenIds || '')} onChange={e => onActualizarProp('screenIds', e.target.value.split(',').map(id => id.trim()).filter(Boolean))} placeholder={proyectoActual?.vistas.map(v => v.id).join(', ')} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>}
+        {['navigationbar', 'bottomnav', 'bottomappbar'].includes(String(componenteSeleccionado.tipo).toLowerCase()) && <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={props.showLabels ?? !['bottomappbar'].includes(String(componenteSeleccionado.tipo).toLowerCase())} onChange={e => onActualizarProp('showLabels', e.target.checked)} />Mostrar etiquetas de destinos</label>}
+        {['topappbar', 'appbar'].includes(String(componenteSeleccionado.tipo).toLowerCase()) && <>
+          <div className="grid grid-cols-2 gap-2 text-slate-300"><label className="flex items-center gap-2"><input type="checkbox" checked={props.showNavigationIcon !== false} onChange={e => onActualizarProp('showNavigationIcon', e.target.checked)} />Icono inicial</label><label className="flex items-center gap-2"><input type="checkbox" checked={props.showActionIcon !== false} onChange={e => onActualizarProp('showActionIcon', e.target.checked)} />Icono final</label></div>
+          <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={props.showTitle !== false} onChange={e => onActualizarProp('showTitle', e.target.checked)} />Mostrar título</label>
+          <label className="text-slate-400 block">Tipo de título<select value={props.titleType || 'text'} onChange={e => onActualizarProp('titleType', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"><option value="text">Texto</option><option value="image">Imagen</option><option value="icon">Icono</option><option value="none">Ninguno</option></select></label>
+          {props.titleType === 'image' && <label className="text-slate-400 block">URL de imagen<input value={props.titleImage || ''} onChange={e => onActualizarProp('titleImage', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>}
+          {props.titleType === 'icon' && <label className="text-slate-400 block">Icono de título<input value={props.titleIcon || 'home'} onChange={e => onActualizarProp('titleIcon', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>}
+        </>}
+      </div>}
+
       {sections.includes('dimensiones') && (
         <div className="space-y-2 border-b border-slate-800 pb-3">
           <span className="font-semibold text-slate-300 block text-[11px]">Dimensiones</span>

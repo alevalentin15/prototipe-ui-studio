@@ -24,11 +24,34 @@ export const CanvasArea = ({
   onEliminarComponente,
   onEjecutarAccion,
   onActualizarProp,
+  onDeviceBack,
+  onDeviceHome,
+  onDeviceRecent,
   onCloseBottomSheet,
   onCloseDialogo,
   onConfirmDialogo
 }) => {
   const pinchStart = useRef(null);
+  const activeProject = proyectos.find(project => project.id === pestanasAbiertas[pestanaActiva]?.proyectoId);
+  const matchesScope = (component, viewId) => {
+    const scope = component.props?.applyToScreens || 'current';
+    if (scope === 'all') return true;
+    if (scope !== 'selected') return false;
+    const ids = Array.isArray(component.props?.screenIds) ? component.props.screenIds : String(component.props?.screenIds || '').split(',').map(id => id.trim());
+    return ids.includes(viewId);
+  };
+  const barFor = kind => {
+    if (vistaActual?.tipoOverlay) return null;
+    for (const view of activeProject?.vistas || []) for (const component of view.componentes || []) {
+      const type = String(component.tipo).toLowerCase();
+      const top = ['topappbar', 'appbar'].includes(type);
+      const bottom = ['navigationbar', 'bottomnav', 'bottomappbar'].includes(type);
+      if ((kind === 'top' ? top : bottom) && matchesScope(component, pestanasAbiertas[pestanaActiva]?.vistaId)) return { component, sourceViewId: view.id };
+    }
+    return null;
+  };
+  const sharedTopBar = barFor('top');
+  const sharedBottomBar = barFor('bottom');
   const frameWidth = vistaActual?.fitContent ? null : (vistaActual?.ancho || 375);
   const frameHeight = vistaActual?.fitContent ? null : (vistaActual?.alto || 812);
   const zoomRatio = nivelZoom / 100;
@@ -111,6 +134,8 @@ export const CanvasArea = ({
           >
             <DeviceFrame
               vistaActual={vistaActual}
+              sharedTopBar={sharedTopBar}
+              sharedBottomBar={sharedBottomBar}
               modoVistaPrevia={modoVistaPrevia}
               modoTema={modoTema}
               paletaPersonalizada={paletaPersonalizada}
@@ -119,6 +144,9 @@ export const CanvasArea = ({
               onEliminarComponente={onEliminarComponente}
               onEjecutarAccion={onEjecutarAccion}
               onActualizarProp={onActualizarProp}
+              onDeviceBack={onDeviceBack}
+              onDeviceHome={onDeviceHome}
+              onDeviceRecent={onDeviceRecent}
               bottomSheetActivo={bottomSheetActivo}
               onCloseBottomSheet={onCloseBottomSheet}
               dialogoActivo={dialogoActivo}

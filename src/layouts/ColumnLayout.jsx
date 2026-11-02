@@ -17,7 +17,7 @@ const ALIGN_ITEMS_MAP = {
 
 export const ColumnLayout = ({ props, children, style = {}, className = "" }) => {
   const verticalArrangement = props.verticalArrangement || 'start';
-  const horizontalAlignment = props.horizontalAlignment || 'stretch';
+  const horizontalAlignment = props.horizontalAlignment || 'start';
   const isRowLegacy = props.direccion === 'row';
 
   const tieneMargen = props.margin && props.margin !== '0' && props.margin !== '0px';
@@ -27,7 +27,7 @@ export const ColumnLayout = ({ props, children, style = {}, className = "" }) =>
     display: 'flex',
     flexDirection: isRowLegacy ? 'row' : 'column',
     justifyContent: JUSTIFY_MAP[verticalArrangement] || 'flex-start',
-    alignItems: ALIGN_ITEMS_MAP[horizontalAlignment] || 'stretch',
+    alignItems: ALIGN_ITEMS_MAP[horizontalAlignment] || 'flex-start',
     gap: props.gap || '12px',
     padding: props.padding ?? '16px',
     margin: props.margin ?? '0',
