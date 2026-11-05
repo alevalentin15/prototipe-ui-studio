@@ -22,6 +22,41 @@ import { Sidebar } from './components/sidebar/Sidebar.jsx';
 import { CanvasArea } from './components/canvas/CanvasArea.jsx';
 import { InspectorPanel } from './components/inspector/InspectorPanel.jsx';
 
+const completarEjemploNavegacion = projects => projects.map(project => {
+  if (project.id !== 'proj-1') return project;
+  const home = project.vistas?.find(view => view.id === 'vista-1');
+  const detail = project.vistas?.find(view => view.id === 'vista-2');
+  if (!home || !detail) return project;
+  const favorites = project.vistas.find(view => view.id === 'vista-3') || { id: 'vista-3', nombre: 'Favoritos', dispositivo: 'movil', ancho: 375, alto: 812, padding: 20, gap: 14, direccion: 'column', bg: 'background', componentes: [
+    { id: 'cmp-fav-title', tipo: 'Text', etiqueta: 'Título Favoritos', props: { texto: 'Tus favoritos', fontSize: '24px', fontWeight: 'bold', color: 'onBackground' } },
+    { id: 'cmp-fav-card', tipo: 'Card', etiqueta: 'Producto guardado', props: { bg: 'surfaceVariant', textColor: 'onSurface', padding: '18px', borderRadius: '16px' }, hijos: [
+      { id: 'cmp-fav-name', tipo: 'Text', etiqueta: 'Nombre guardado', props: { texto: 'Audífonos Bluetooth Pro', fontSize: '16px', fontWeight: 'bold' } },
+      { id: 'cmp-fav-price', tipo: 'Text', etiqueta: 'Precio guardado', props: { texto: '$199.99 USD', color: 'primary' } }
+    ] },
+    { id: 'cmp-fav-open', tipo: 'Button', etiqueta: 'Abrir producto guardado', props: { texto: 'Ver producto', bg: 'primary', textColor: 'onPrimary', padding: '12px 18px' }, accion: { tipo: 'navegar', vistaId: 'vista-2' } }
+  ] };
+  const profile = project.vistas.find(view => view.id === 'vista-4') || { id: 'vista-4', nombre: 'Perfil', dispositivo: 'movil', ancho: 375, alto: 812, padding: 20, gap: 14, direccion: 'column', bg: 'background', componentes: [
+    { id: 'cmp-profile-title', tipo: 'Text', etiqueta: 'Título Perfil', props: { texto: 'Mi perfil', fontSize: '24px', fontWeight: 'bold', color: 'onBackground' } },
+    { id: 'cmp-profile-name', tipo: 'Text', etiqueta: 'Nombre perfil', props: { texto: 'Alex Morgan', fontSize: '18px', fontWeight: 'bold' } },
+    { id: 'cmp-profile-email', tipo: 'Text', etiqueta: 'Correo perfil', props: { texto: 'alex@example.com', color: 'onSurfaceVariant' } },
+    { id: 'cmp-profile-toggle', tipo: 'Switch', etiqueta: 'Preferencia de ofertas', props: { etiqueta: 'Recibir ofertas', variableName: 'mostrarOferta' } },
+    { id: 'cmp-profile-home', tipo: 'Button', etiqueta: 'Volver al inicio', props: { texto: 'Volver al inicio', bg: 'primary', textColor: 'onPrimary', padding: '12px 18px' }, accion: { tipo: 'navegar', vistaId: 'vista-1' } }
+  ] };
+  const homeComponents = [...(home.componentes || [])];
+  const detailComponents = [...(detail.componentes || [])];
+  const offer = homeComponents.find(component => component.id === 'cmp-3');
+  if (offer) offer.props = { ...offer.props, visibleWhen: offer.props?.visibleWhen || 'mostrarOferta == true' };
+  if (!homeComponents.some(component => component.id === 'cmp-nav-switch')) homeComponents.push({ id: 'cmp-nav-switch', tipo: 'Switch', etiqueta: 'Controlar oferta con variable', props: { etiqueta: 'Mostrar banner promocional', variableName: 'mostrarOferta' } });
+  if (!homeComponents.some(component => component.id === 'cmp-nav-hide')) homeComponents.push({ id: 'cmp-nav-hide', tipo: 'Button', etiqueta: 'Ocultar oferta con acción', props: { texto: 'Ocultar promoción', bg: 'surfaceVariant', textColor: 'onSurfaceVariant', padding: '10px 16px' }, accion: { tipo: 'setVariable', variable: 'mostrarOferta', value: 'false' } });
+  if (!homeComponents.some(component => component.id === 'cmp-bottom-navigation')) homeComponents.push({ id: 'cmp-bottom-navigation', tipo: 'NavigationBar', etiqueta: 'Navegación del proyecto', props: { items: 'Inicio:home:vista-1, Producto:search:vista-2', activo: 0, navigationStyle: 'pill', showLabels: true, fixedPosition: 'bottom', applyToScreens: 'all', bg: 'surface', activeContainer: 'secondaryContainer' } });
+  const navigation = homeComponents.find(component => component.id === 'cmp-bottom-navigation');
+  if (navigation?.props?.items === 'Inicio:home:vista-1, Producto:search:vista-2') navigation.props = { ...navigation.props, items: 'Inicio:home:vista-1, Producto:search:vista-2, Favoritos:heart:vista-3, Perfil:user:vista-4' };
+  if (!detailComponents.some(component => component.id === 'cmp-detail-topbar')) detailComponents.push({ id: 'cmp-detail-topbar', tipo: 'TopAppBar', etiqueta: 'Barra superior de detalle', props: { titulo: 'Detalle de producto', navigationIcon: 'arrowLeft', showNavigationIcon: true, showActionIcon: false, fixedPosition: 'top', applyToScreens: 'current', bg: 'surface' }, accion: { tipo: 'navegar', vistaId: 'vista-1' } });
+  const existingViewIds = new Set(project.vistas.map(view => view.id));
+  const nextViews = project.vistas.map(view => view.id === home.id ? { ...view, componentes: homeComponents } : view.id === detail.id ? { ...view, componentes: detailComponents } : view);
+  return { ...project, variables: { mostrarOferta: true, contador: 0, ...(project.variables || {}) }, vistas: [...nextViews, ...[favorites, profile].filter(view => !existingViewIds.has(view.id))] };
+});
+
 function App() {
   // Estado principal de proyectos
   const [proyectos, setProyectos] = useState(() => {
@@ -36,9 +71,9 @@ function App() {
       // Migrar una sola vez los ajustes globales anteriores a la configuración por proyecto.
       localStorage.removeItem('studio_m3_theme');
       localStorage.removeItem('studio_m3_custom_palette');
-      return proyectosNormalizados;
+      return completarEjemploNavegacion(proyectosNormalizados);
     } catch (e) {
-      return normalizarTemasProyectos(proyectosIniciales);
+      return completarEjemploNavegacion(normalizarTemasProyectos(proyectosIniciales));
     }
   });
 
@@ -58,6 +93,7 @@ function App() {
   ]);
   const [pestanaActiva, setPestanaActiva] = useState(0);
   const [historialNavegacion, setHistorialNavegacion] = useState([]);
+  const [runtimeVariablesPorProyecto, setRuntimeVariablesPorProyecto] = useState({});
 
   // Selección y modos de interfaz
   const [idComponenteSeleccionado, setIdComponenteSeleccionado] = useState(null);
@@ -90,6 +126,7 @@ function App() {
     || proyectoActual?.overlays?.find(v => v.id === pestanaActual?.vistaId);
   const modoTema = proyectoActual?.tema?.modo || 'claro';
   const paletaPersonalizada = obtenerPaletaTema(proyectoActual, modoTema);
+  const runtimeVariablesActuales = { ...(proyectoActual?.variables || {}), ...(runtimeVariablesPorProyecto[proyectoActual?.id] || {}) };
   const componenteSeleccionado = vistaActual ? (buscarComponente(vistaActual.componentes, idComponenteSeleccionado)
     || proyectoActual?.vistas.map(v => buscarComponente(v.componentes, idComponenteSeleccionado)).find(Boolean)) : null;
 
@@ -521,7 +558,13 @@ function App() {
   // Ejecución de acciones en Modo Vista Previa
   const handleEjecutarAccion = (accion) => {
     if (!accion) return;
-    if (accion.tipo === 'alerta') {
+    if (accion.tipo === 'setVariable') {
+      if (accion.variable) {
+        let value = accion.value;
+        try { value = JSON.parse(value); } catch {}
+        handleSetVariable(accion.variable, value);
+      }
+    } else if (accion.tipo === 'alerta') {
       mostrarToast(accion.payload || '¡Acción ejecutada correctamente!');
     } else if (accion.tipo === 'bottomsheet') {
       const contenidoPersonalizado = proyectoActual?.vistas?.find(item => item.id === (accion.vistaId || accion.overlayId)) || proyectoActual?.overlays?.find(item => item.id === accion.overlayId);
@@ -549,6 +592,16 @@ function App() {
         mostrarToast(`Navegando a: ${vistaDestino.nombre}`);
       }
     }
+  };
+
+  const handleSetVariable = (name, value) => {
+    if (!name || !proyectoActual) return;
+    setRuntimeVariablesPorProyecto(prev => ({ ...prev, [proyectoActual.id]: { ...(prev[proyectoActual.id] || {}), [name]: value } }));
+  };
+  const handleActualizarVariables = variables => {
+    if (!proyectoActual) return;
+    setProyectos(prev => prev.map(project => project.id === proyectoActual.id ? { ...project, variables } : project));
+    setRuntimeVariablesPorProyecto(prev => { const next = { ...prev }; delete next[proyectoActual.id]; return next; });
   };
 
   const handleDeviceBack = () => {
@@ -641,6 +694,8 @@ function App() {
             onSeleccionarComponente={handleSeleccionarComponente}
             onEliminarComponente={handleEliminarComponente}
             onActualizarProp={handleActualizarProp}
+            runtimeVariables={runtimeVariablesActuales}
+            onSetVariable={handleSetVariable}
             onEjecutarAccion={handleEjecutarAccion}
             onDeviceBack={handleDeviceBack}
             onDeviceHome={handleDeviceHome}
@@ -671,6 +726,7 @@ function App() {
             onActualizarLienzo={handleActualizarLienzo}
             onCambiarModoTema={handleCambiarModoTema}
             onActualizarColorTema={handleActualizarColorTema}
+            onActualizarVariables={handleActualizarVariables}
             idComponenteSeleccionado={idComponenteSeleccionado}
             onSeleccionarComponente={handleSeleccionarComponente}
             onEliminarComponente={handleEliminarComponente}

@@ -24,6 +24,8 @@ export const CanvasArea = ({
   onEliminarComponente,
   onEjecutarAccion,
   onActualizarProp,
+  runtimeVariables = {},
+  onSetVariable,
   onDeviceBack,
   onDeviceHome,
   onDeviceRecent,
@@ -134,6 +136,9 @@ export const CanvasArea = ({
           >
             <DeviceFrame
               vistaActual={vistaActual}
+              vistaIdActual={pestanasAbiertas[pestanaActiva]?.vistaId}
+              runtimeVariables={runtimeVariables}
+              onSetVariable={onSetVariable}
               sharedTopBar={sharedTopBar}
               sharedBottomBar={sharedBottomBar}
               modoVistaPrevia={modoVistaPrevia}

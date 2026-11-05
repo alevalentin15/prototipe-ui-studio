@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PropertiesTab } from './PropertiesTab.jsx';
 import { ActionsTab } from './ActionsTab.jsx';
 import { CanvasPropertiesTab } from './CanvasPropertiesTab.jsx';
+import { ProgrammingTab } from './ProgrammingTab.jsx';
 import { LayersTree } from './LayersTree.jsx';
 import { ResizeHandle } from '../common/ResizeHandle.jsx';
 
@@ -23,6 +24,7 @@ export const InspectorPanel = ({
   onActualizarLienzo,
   onCambiarModoTema,
   onActualizarColorTema,
+  onActualizarVariables,
   idComponenteSeleccionado,
   onSeleccionarComponente,
   onEliminarComponente
@@ -36,7 +38,7 @@ export const InspectorPanel = ({
         setWidth(Math.max(260, Math.min(560, width - delta)));
       }} />
       {/* Pestañas de Inspector */}
-      <div className="h-10 border-b border-slate-800 flex items-center px-2 gap-1 bg-slate-900">
+      <div className="h-10 border-b border-slate-800 flex items-center px-1 gap-0.5 bg-slate-900">
         <button
           onClick={() => {
             if (esLienzoSeleccionado) onSeleccionarComponente(null);
@@ -75,6 +77,9 @@ export const InspectorPanel = ({
           }`}
         >
           Lienzo
+        </button>
+        <button onClick={() => { if (esLienzoSeleccionado) onSeleccionarComponente(null); onCambiarPestanaInspector('programacion'); }} className={`flex-1 py-1.5 text-[10px] font-medium rounded transition ${pestanaInspector === 'programacion' ? 'bg-slate-800 text-violet-300 font-semibold' : 'text-slate-400 hover:text-slate-200'}`}>
+          Programación
         </button>
       </div>
 
@@ -116,6 +121,8 @@ export const InspectorPanel = ({
             onActualizarVistaOverlay={onActualizarVistaOverlay}
           />
         )}
+
+        {pestanaInspector === 'programacion' && <ProgrammingTab proyectoActual={proyectoActual} onActualizarVariables={onActualizarVariables} />}
 
         {/* JERARQUÍA DE COMPONENTES DE LA VISTA */}
         {vistaActual && (

@@ -7,7 +7,10 @@ import { getComponentDefinition } from '../../registry/componentRegistry.js';
 import { resolveM3Color, resolveM3StyleValue } from '../../theme/materialTheme.js';
 
 export const CanvasRenderer = ({
-  cmp,
+  cmp: incomingCmp,
+  vistaIdActual,
+  runtimeVariables = {},
+  onSetVariable,
   idComponenteSeleccionado,
   modoVistaPrevia,
   parentOrientation = 'vertical',
@@ -18,6 +21,17 @@ export const CanvasRenderer = ({
   onEjecutarAccion,
   onActualizarProp
 }) => {
+  const resolveBoundValue = value => {
+    if (typeof value !== 'string') return value;
+    const exact = value.match(/^\{\{\s*([\w.-]+)\s*\}\}$/);
+    if (exact) return runtimeVariables[exact[1]] ?? '';
+    return value.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, name) => runtimeVariables[name] ?? '');
+  };
+  const getBoundVariable = property => typeof incomingCmp.props?.[property] === 'string'
+    ? incomingCmp.props[property].match(/^\{\{\s*([\w.-]+)\s*\}\}$/)?.[1]
+    : undefined;
+  const toDisplayValue = value => value == null ? '' : (typeof value === 'object' ? JSON.stringify(value) : String(value));
+  const cmp = { ...incomingCmp, props: Object.fromEntries(Object.entries(incomingCmp.props || {}).map(([key, value]) => [key, resolveBoundValue(value)])) };
   const {
     isDragging,
     draggedItem,
@@ -33,12 +47,38 @@ export const CanvasRenderer = ({
   const [selectedSegment, setSelectedSegment] = useState(Number(cmp.props?.activo) || 0);
   const [rangeStart, setRangeStart] = useState(Number(cmp.props?.valueStart ?? 25));
   const [rangeEnd, setRangeEnd] = useState(Number(cmp.props?.valueEnd ?? 75));
+  const [switchValue, setSwitchValue] = useState(Boolean(cmp.props?.checked));
+  const [checkboxValue, setCheckboxValue] = useState(Boolean(cmp.props?.checked));
 
   useEffect(() => setSelectedSegment(Number(cmp.props?.activo) || 0), [cmp.props?.activo]);
   useEffect(() => {
     setRangeStart(Number(cmp.props?.valueStart ?? 25));
     setRangeEnd(Number(cmp.props?.valueEnd ?? 75));
   }, [cmp.props?.valueStart, cmp.props?.valueEnd]);
+  useEffect(() => setSwitchValue(Boolean(cmp.props?.checked)), [cmp.props?.checked]);
+  useEffect(() => setCheckboxValue(Boolean(cmp.props?.checked)), [cmp.props?.checked]);
+
+  const matchesVisibility = condition => {
+    if (condition === undefined || condition === null || condition === '') return true;
+    if (typeof condition === 'boolean') return condition;
+    const match = String(condition).trim().match(/^([\w.-]+)\s*(==|===|!=|!==|>=|<=|>|<)?\s*(.*)$/);
+    if (!match) return true;
+    const [, name, operator, rawExpected] = match;
+    const actual = runtimeVariables[name];
+    if (!operator) return Boolean(actual);
+    let expected;
+    try { expected = JSON.parse(rawExpected); } catch { expected = rawExpected.replace(/^['"]|['"]$/g, ''); }
+    switch (operator) {
+      case '==': case '===': return actual === expected || String(actual) === String(expected);
+      case '!=': case '!==': return !(actual === expected || String(actual) === String(expected));
+      case '>': return actual > expected;
+      case '<': return actual < expected;
+      case '>=': return actual >= expected;
+      case '<=': return actual <= expected;
+      default: return true;
+    }
+  };
+  if (modoVistaPrevia && !matchesVisibility(cmp.props?.visibleWhen)) return null;
 
   const def = getComponentDefinition(cmp.tipo);
   const esContenedor = def?.isContainer || Boolean(cmp.hijos);
@@ -210,7 +250,7 @@ export const CanvasRenderer = ({
     case 'texto':
       elementoInterno = (
         <div style={estiloComun} onClick={handleClick}>
-          {cmp.props.texto || 'Texto'}
+          {toDisplayValue(cmp.props.texto ?? 'Texto')}
         </div>
       );
       break;
@@ -229,7 +269,7 @@ export const CanvasRenderer = ({
           onClick={handleClick}
           className={`hover:opacity-90 active:scale-95 text-center font-medium transition ${tipoLimpio === 'textbutton' ? '' : 'shadow-sm'}`}
         >
-          {cmp.props.texto || cmp.etiqueta}
+          {toDisplayValue(cmp.props.texto ?? cmp.etiqueta)}
         </button>
       );
       break;
@@ -278,7 +318,7 @@ export const CanvasRenderer = ({
           className="shadow-lg hover:shadow-xl active:scale-95 transition font-medium text-xs"
         >
           <Icon name={cmp.props.icon || 'plus'} className="w-5 h-5" />
-          {cmp.props.texto && <span>{cmp.props.texto}</span>}
+          {cmp.props.texto != null && <span>{toDisplayValue(cmp.props.texto)}</span>}
         </button>
       );
       break;
@@ -336,17 +376,19 @@ export const CanvasRenderer = ({
 
     case 'checkbox': {
       const colorCheck = resolveM3Color(cmp.props.color || 'primary', modoTema, paletaPersonalizada);
+      const checkedVariable = cmp.props.variableName || getBoundVariable('checked');
+      const isChecked = checkedVariable ? Boolean(runtimeVariables[checkedVariable]) : checkboxValue;
       elementoInterno = (
         <div style={estiloComun} onClick={handleClick} className="flex items-center gap-2.5 cursor-pointer py-1">
-          <div
+          <button type="button" role="checkbox" aria-checked={isChecked} onClick={event => { event.stopPropagation(); if (!modoVistaPrevia) { onSeleccionarComponente(cmp.id); return; } if (checkedVariable) onSetVariable?.(checkedVariable, !isChecked); else setCheckboxValue(!isChecked); if (cmp.accion) onEjecutarAccion(cmp.accion); }}
             style={{
-              background: cmp.props.checked ? colorCheck : 'transparent',
-              borderColor: cmp.props.checked ? colorCheck : '#79747E'
+              background: isChecked ? colorCheck : 'transparent',
+              borderColor: isChecked ? colorCheck : '#79747E'
             }}
             className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
           >
-            {cmp.props.checked && <Icon name="check" className="w-3.5 h-3.5 text-white stroke-[3]" />}
-          </div>
+            {isChecked && <Icon name="check" className="w-3.5 h-3.5 text-white stroke-[3]" />}
+          </button>
           <span className="text-xs select-none">
             {cmp.props.etiqueta || 'OpciÃ³n Checkbox'}
           </span>
@@ -444,7 +486,7 @@ export const CanvasRenderer = ({
           className={`px-3 py-1.5 text-xs font-medium border ${isSelected ? 'border-transparent shadow' : 'border-slate-700/30'} cursor-pointer hover:opacity-90 transition`}
         >
           {cmp.props.icon && <Icon name={cmp.props.icon} className="w-3.5 h-3.5" />}
-          <span>{cmp.props.texto || 'Chip'}</span>
+          <span>{toDisplayValue(cmp.props.texto ?? 'Chip')}</span>
         </div>
       );
       break;
@@ -452,15 +494,14 @@ export const CanvasRenderer = ({
 
     case 'switch': {
       const colorSwitch = resolveM3Color(cmp.props.color || 'primary', modoTema, paletaPersonalizada);
+      const switchVariable = cmp.props.variableName || getBoundVariable('checked');
+      const switchIsOn = switchVariable ? Boolean(runtimeVariables[switchVariable]) : switchValue;
       elementoInterno = (
         <div style={estiloComun} onClick={handleClick} className="flex items-center justify-between p-2 rounded bg-slate-800/20 border border-slate-700/30">
           <span className="text-xs">{cmp.props.etiqueta || 'FunciÃ³n'}</span>
-          <div
-            style={{ background: cmp.props.checked ? colorSwitch : '#475569' }}
-            className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition ${cmp.props.checked ? 'justify-end' : 'justify-start'}`}
-          >
+          <button type="button" role="switch" aria-checked={switchIsOn} onClick={event => { event.stopPropagation(); if (!modoVistaPrevia) { onSeleccionarComponente(cmp.id); return; } const next = !switchIsOn; if (switchVariable) onSetVariable?.(switchVariable, next); else setSwitchValue(next); if (cmp.accion) onEjecutarAccion(cmp.accion); }} style={{ background: switchIsOn ? colorSwitch : '#475569' }} className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer transition ${switchIsOn ? 'justify-end' : 'justify-start'}`}>
             <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md"></div>
-          </div>
+          </button>
         </div>
       );
       break;
@@ -529,12 +570,12 @@ export const CanvasRenderer = ({
           className="flex items-center justify-between px-4 py-3 shadow-sm border-b border-slate-700/20"
         >
           <div className="flex items-center gap-3">
-            {cmp.props.showNavigationIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { if (modoVistaPrevia) e.stopPropagation(); }}>
+            {cmp.props.showNavigationIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { e.stopPropagation(); if (modoVistaPrevia && cmp.accion) onEjecutarAccion(cmp.accion); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }}>
               <Icon name={cmp.props.navigationIcon || 'menu'} className="w-5 h-5" />
             </button>}
-{cmp.props.showTitle !== false && cmp.props.titleType !== 'none' && (cmp.props.titleType === 'image' ? <img src={cmp.props.titleImage || ''} alt={cmp.props.titulo || 'Title'} className="max-h-8 max-w-36 object-contain" /> : cmp.props.titleType === 'icon' ? <Icon name={cmp.props.titleIcon || 'home'} className="w-5 h-5" /> : <span className="font-semibold text-sm truncate">{cmp.props.titulo}</span>)}
+{cmp.props.showTitle !== false && cmp.props.titleType !== 'none' && (cmp.props.titleType === 'image' ? <img src={cmp.props.titleImage || ''} alt={toDisplayValue(cmp.props.titulo || 'Title')} className="max-h-8 max-w-36 object-contain" /> : cmp.props.titleType === 'icon' ? <Icon name={cmp.props.titleIcon || 'home'} className="w-5 h-5" /> : <span className="font-semibold text-sm truncate">{toDisplayValue(cmp.props.titulo)}</span>)}
           </div>
-          {cmp.props.showActionIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { if (modoVistaPrevia) e.stopPropagation(); }}>
+          {cmp.props.showActionIcon !== false && <button className="p-1 rounded-full hover:bg-slate-500/10 transition" type="button" onClick={e => { e.stopPropagation(); if (modoVistaPrevia && cmp.accion) onEjecutarAccion(cmp.accion); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }}>
             <Icon name={cmp.props.actionIcon || 'moreVertical'} className="w-5 h-5" />
           </button>}
         </div>
@@ -545,11 +586,12 @@ export const CanvasRenderer = ({
     case 'navigationbar':
     case 'bottomnav': {
       const navBg = resolveM3Color(cmp.props.bg || 'surface', modoTema, paletaPersonalizada);
-      const navText = resolveM3Color(cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
       const actColor = resolveM3Color(cmp.props.activeColor || 'primary', modoTema, paletaPersonalizada);
       const actContainer = resolveM3Color(cmp.props.activeContainer || 'secondaryContainer', modoTema, paletaPersonalizada);
       const activeIconColor = resolveM3Color(cmp.props.activeIconColor || 'onSecondaryContainer', modoTema, paletaPersonalizada);
       const inactiveIconColor = resolveM3Color(cmp.props.inactiveIconColor || cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
+      const activeLabelColor = resolveM3Color(cmp.props.activeLabelColor || cmp.props.activeColor || 'primary', modoTema, paletaPersonalizada);
+      const inactiveLabelColor = resolveM3Color(cmp.props.inactiveLabelColor || cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
       const navStyle = cmp.props.navigationStyle || 'pill';
 
       const rawItems = cmp.props.items || 'Inicio:home, Buscar:search, Perfil:user';
@@ -572,7 +614,7 @@ export const CanvasRenderer = ({
           className="flex items-center justify-around py-2 px-1 shadow border-t border-slate-700/20"
         >
           {itemsList.map((item, idx) => {
-            const isSelected = idx === activoIdx;
+            const isSelected = item.viewId ? item.viewId === vistaIdActual : idx === activoIdx;
             return (
               <div
                 key={idx}
@@ -582,14 +624,14 @@ export const CanvasRenderer = ({
                 <div
                   style={{
                     backgroundColor: isSelected && navStyle === 'pill' ? actContainer : isSelected && navStyle === 'icon' ? actContainer : 'transparent',
-                    color: isSelected ? (navStyle === 'icon' ? activeIconColor : actColor) : inactiveIconColor
+                    color: isSelected ? (navStyle === 'color' ? actColor : activeIconColor) : inactiveIconColor
                   }}
-                  className={`w-16 h-8 shrink-0 mx-auto rounded-full flex items-center justify-center transition-all ${navStyle === 'icon' ? 'w-9 h-9' : ''}`}
+                  className={`shrink-0 mx-auto rounded-full flex items-center justify-center transition-all ${navStyle === 'icon' ? 'w-9 h-9' : 'w-16 h-8'}`}
                 >
                   <Icon name={item.icon || 'home'} className="w-5 h-5" />
                 </div>
                 {cmp.props.showLabels !== false && <span
-                  style={{ color: isSelected ? actColor : navText }}
+                  style={{ color: isSelected ? activeLabelColor : inactiveLabelColor }}
                   className={`text-[10px] font-medium truncate ${isSelected ? 'font-bold' : ''}`}
                 >
                   {item.label}
@@ -649,9 +691,23 @@ export const CanvasRenderer = ({
       const barBg = resolveM3Color(cmp.props.bg || 'surface', modoTema, paletaPersonalizada);
       const fabBg = resolveM3Color('primaryContainer', modoTema, paletaPersonalizada);
       const fabText = resolveM3Color('onPrimaryContainer', modoTema, paletaPersonalizada);
+      const navStyle = cmp.props.navigationStyle || 'pill';
+      const activeContainer = resolveM3Color(cmp.props.activeContainer || 'secondaryContainer', modoTema, paletaPersonalizada);
+      const activeIcon = resolveM3Color(cmp.props.activeIconColor || 'onSecondaryContainer', modoTema, paletaPersonalizada);
+      const inactiveIcon = resolveM3Color(cmp.props.inactiveIconColor || cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
+      const activeLabel = resolveM3Color(cmp.props.activeLabelColor || cmp.props.activeColor || 'primary', modoTema, paletaPersonalizada);
+      const inactiveLabel = resolveM3Color(cmp.props.inactiveLabelColor || cmp.props.textColor || 'onSurfaceVariant', modoTema, paletaPersonalizada);
+      const colorActive = resolveM3Color(cmp.props.activeColor || 'primary', modoTema, paletaPersonalizada);
+      const activeIndex = Number(cmp.props.activo || 0);
       elementoInterno = (
         <div style={{ ...estiloComun, background: barBg, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }} onClick={handleClick}>
-          {items.map((item, index) => <button type="button" key={`${item.label}-${index}`} onClick={e => { e.stopPropagation(); if (modoVistaPrevia && item.viewId) onEjecutarAccion({ tipo: 'navegar', vistaId: item.viewId }); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }} className="p-2 rounded-full hover:bg-slate-500/10" title={item.label}><Icon name={item.icon} className="w-5 h-5" />{cmp.props.showLabels && <span className="text-[10px] ml-1">{item.label}</span>}</button>)}
+          {items.map((item, index) => {
+            const selected = item.viewId ? item.viewId === vistaIdActual : index === activeIndex;
+            return <button type="button" key={`${item.label}-${index}`} onClick={e => { e.stopPropagation(); if (modoVistaPrevia && item.viewId) onEjecutarAccion({ tipo: 'navegar', vistaId: item.viewId }); else if (!modoVistaPrevia) onSeleccionarComponente(cmp.id); }} className="min-w-0 flex-1 flex flex-col items-center justify-center gap-1 py-1 rounded-full hover:bg-slate-500/10" title={item.label}>
+              <span style={{ background: selected && navStyle !== 'color' ? activeContainer : 'transparent', color: selected ? (navStyle === 'color' ? colorActive : activeIcon) : inactiveIcon }} className={`shrink-0 mx-auto rounded-full flex items-center justify-center ${navStyle === 'icon' ? 'w-9 h-9' : 'w-16 h-8'}`}><Icon name={item.icon} className="w-5 h-5" /></span>
+              {cmp.props.showLabels && <span style={{ color: selected ? activeLabel : inactiveLabel }} className="max-w-full truncate text-[10px]">{item.label}</span>}
+            </button>;
+          })}
           <button type="button" style={{ background: fabBg, color: fabText }} className="w-14 h-14 -mt-8 rounded-2xl shadow-lg" title="AcciÃ³n principal"><Icon name="plus" className="w-6 h-6" /></button>
         </div>
       );
@@ -945,6 +1001,9 @@ export const CanvasRenderer = ({
                 <CanvasRenderer
                   key={hijo.id}
                   cmp={hijo}
+                  vistaIdActual={vistaIdActual}
+                  runtimeVariables={runtimeVariables}
+                  onSetVariable={onSetVariable}
                   idComponenteSeleccionado={idComponenteSeleccionado}
                   modoVistaPrevia={modoVistaPrevia}
                   parentOrientation={orientacionHijos}

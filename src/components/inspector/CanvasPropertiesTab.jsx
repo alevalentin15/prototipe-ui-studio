@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Icon } from '../common/Icon.jsx';
 import { M3_SCHEMES, M3_TOKENS, resolveM3Color, resolveEffectiveThemeMode } from '../../theme/materialTheme.js';
 
@@ -66,7 +66,7 @@ export const CanvasPropertiesTab = ({
             Propiedades del Lienzo
           </span>
           <span className="text-[10px] text-slate-400 font-mono">
-            Vista: {vistaActual.nombre} ({vistaActual.dispositivo === 'movil' ? 'Móvil' : 'Web'})
+            Vista: {vistaActual.nombre} ({vistaActual.dispositivo === 'movil' ? 'MÃ³vil' : 'Web'})
           </span>
         </div>
         <span className="text-[9px] bg-teal-950/60 border border-teal-800/60 text-teal-300 px-2 py-0.5 rounded font-mono">
@@ -76,18 +76,18 @@ export const CanvasPropertiesTab = ({
 
       {vistaActual.tipoOverlay && <div className="space-y-2 rounded-lg border border-amber-800/50 bg-slate-950 p-3">
         <div className="flex items-center justify-between"><span className="font-semibold text-amber-300">Propiedades de {vistaActual.tipoOverlay === 'dialog' ? 'Dialog' : 'Sheet'}</span><button type="button" onClick={() => {
-          const defaults = { mostrarTitulo: true, titulo: vistaActual.tipoOverlay === 'dialog' ? 'Nueva confirmación' : 'Nuevo menú', showCloseButton: true, closeOnOutside: true, bg: 'surface', textColor: 'onSurface', outlineColor: 'outlineVariant', backdropColor: 'rgba(0,0,0,.65)', borderRadius: vistaActual.tipoOverlay === 'dialog' ? '16px' : '20px', overlayPadding: '20px', showConfirmButton: true, showCancelButton: true, confirmText: 'Aceptar', cancelText: 'Cancelar', showCloseActionButton: true, closeText: 'Cerrar', showHandle: true, primaryButtonColor: 'primary', confirmTextColor: 'onPrimary', cancelButtonColor: 'surfaceVariant', handleColor: 'onSurfaceVariant' };
+          const defaults = { mostrarTitulo: true, titulo: vistaActual.tipoOverlay === 'dialog' ? 'Nueva confirmaciÃ³n' : 'Nuevo menÃº', showCloseButton: true, closeOnOutside: true, bg: 'surface', textColor: 'onSurface', outlineColor: 'outlineVariant', backdropColor: 'rgba(0,0,0,.65)', borderRadius: vistaActual.tipoOverlay === 'dialog' ? '16px' : '20px', overlayPadding: '20px', showConfirmButton: true, showCancelButton: true, confirmText: 'Aceptar', cancelText: 'Cancelar', showCloseActionButton: true, closeText: 'Cerrar', showHandle: true, primaryButtonColor: 'primary', confirmTextColor: 'onPrimary', cancelButtonColor: 'surfaceVariant', handleColor: 'onSurfaceVariant' };
           Object.entries(defaults).forEach(([key, value]) => onActualizarLienzo(key, value));
         }} className="text-[10px] text-teal-400">Restablecer valores</button></div>
-        <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.mostrarTitulo !== false} onChange={e => onActualizarLienzo('mostrarTitulo', e.target.checked)} />Mostrar título</label>
-        <input value={vistaActual.titulo || ''} onChange={e => onActualizarLienzo('titulo', e.target.value)} placeholder="Título opcional" disabled={vistaActual.mostrarTitulo === false} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" />
+        <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.mostrarTitulo !== false} onChange={e => onActualizarLienzo('mostrarTitulo', e.target.checked)} />Mostrar tÃ­tulo</label>
+        <input value={vistaActual.titulo || ''} onChange={e => onActualizarLienzo('titulo', e.target.value)} placeholder="TÃ­tulo opcional" disabled={vistaActual.mostrarTitulo === false} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" />
         <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.closeOnOutside !== false} onChange={e => onActualizarLienzo('closeOnOutside', e.target.checked)} />Cerrar al tocar fuera</label>
         <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showCloseButton !== false} onChange={e => onActualizarLienzo('showCloseButton', e.target.checked)} />Mostrar icono cerrar</label>
-        {vistaActual.tipoOverlay === 'dialog' ? <div className="grid grid-cols-2 gap-2"><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showCancelButton !== false} onChange={e => onActualizarLienzo('showCancelButton', e.target.checked)} />Botón cancelar</label><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showConfirmButton !== false} onChange={e => onActualizarLienzo('showConfirmButton', e.target.checked)} />Botón confirmar</label><input value={vistaActual.cancelText ?? 'Cancelar'} onChange={e => onActualizarLienzo('cancelText', e.target.value)} className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Cancelar" /><input value={vistaActual.confirmText ?? 'Aceptar'} onChange={e => onActualizarLienzo('confirmText', e.target.value)} className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Aceptar" /></div> : <div className="space-y-2"><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showHandle !== false} onChange={e => onActualizarLienzo('showHandle', e.target.checked)} />Mostrar indicador</label><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showCloseActionButton !== false} onChange={e => onActualizarLienzo('showCloseActionButton', e.target.checked)} />Botón cerrar</label><input value={vistaActual.closeText ?? 'Cerrar'} onChange={e => onActualizarLienzo('closeText', e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Texto del botón" /></div>}
-        <div className="grid grid-cols-2 gap-2">{[['bg','Fondo','surface'],['textColor','Texto','onSurface'],['primaryButtonColor','Acción','primary'],['cancelButtonColor','Secundario','surfaceVariant'],['outlineColor','Borde','outlineVariant'],['backdropColor','Fondo exterior','rgba(0,0,0,.65)'],['borderRadius','Radio','16px'],['overlayPadding','Padding','20px']].map(([key,label,fallback]) => <label key={key} className="text-slate-400">{label}<input value={vistaActual[key] ?? fallback} onChange={e => onActualizarLienzo(key, e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>)}</div>
+        {vistaActual.tipoOverlay === 'dialog' ? <div className="grid grid-cols-2 gap-2"><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showCancelButton !== false} onChange={e => onActualizarLienzo('showCancelButton', e.target.checked)} />BotÃ³n cancelar</label><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showConfirmButton !== false} onChange={e => onActualizarLienzo('showConfirmButton', e.target.checked)} />BotÃ³n confirmar</label><input value={vistaActual.cancelText ?? 'Cancelar'} onChange={e => onActualizarLienzo('cancelText', e.target.value)} className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Cancelar" /><input value={vistaActual.confirmText ?? 'Aceptar'} onChange={e => onActualizarLienzo('confirmText', e.target.value)} className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Aceptar" /></div> : <div className="space-y-2"><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showHandle !== false} onChange={e => onActualizarLienzo('showHandle', e.target.checked)} />Mostrar indicador</label><label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.showCloseActionButton !== false} onChange={e => onActualizarLienzo('showCloseActionButton', e.target.checked)} />BotÃ³n cerrar</label><input value={vistaActual.closeText ?? 'Cerrar'} onChange={e => onActualizarLienzo('closeText', e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" placeholder="Texto del botÃ³n" /></div>}
+        <div className="grid grid-cols-2 gap-2">{[['bg','Fondo','surface'],['textColor','Texto','onSurface'],['primaryButtonColor','AcciÃ³n','primary'],['cancelButtonColor','Secundario','surfaceVariant'],['outlineColor','Borde','outlineVariant'],['backdropColor','Fondo exterior','rgba(0,0,0,.65)'],['borderRadius','Radio','16px'],['overlayPadding','Padding','20px']].map(([key,label,fallback]) => <label key={key} className="text-slate-400">{label}<input value={vistaActual[key] ?? fallback} onChange={e => onActualizarLienzo(key, e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200" /></label>)}</div>
       </div>}
 
-      {/* 1. SECCIÓN: TEMA DEL PROYECTO */}
+      {/* 1. SECCIÃ“N: TEMA DEL PROYECTO */}
       <div className="space-y-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
         <div className="flex items-center justify-between">
           <span className="font-semibold text-slate-200 text-[11px] flex items-center gap-1.5">
@@ -119,11 +119,11 @@ export const CanvasPropertiesTab = ({
           </div>
         </div>
         <p className="text-[10px] text-slate-500">
-          Afecta a todo el proyecto. El lienzo actualizará su fondo y componentes respetando la paleta semántica.
+          Afecta a todo el proyecto. El lienzo actualizarÃ¡ su fondo y componentes respetando la paleta semÃ¡ntica.
         </p>
       </div>
 
-      {/* 2. SECCIÓN: DIMENSIONES */}
+      {/* 2. SECCIÃ“N: DIMENSIONES */}
       <div className="space-y-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
         <span className="font-semibold text-slate-200 text-[11px] block">Tokens del Proyecto</span>
         <p className="text-[10px] text-slate-500">Los colores personalizados se guardan con este proyecto y se aplican al lienzo y sus componentes.</p>
@@ -142,7 +142,7 @@ export const CanvasPropertiesTab = ({
       <div className="space-y-2.5 border-b border-slate-800 pb-3">
         <span className="font-semibold text-slate-300 block text-[11px]">Dimensiones del Marco</span>
 
-        {/* Presets Rápidos de Dispositivo */}
+        {/* Presets RÃ¡pidos de Dispositivo */}
         <div className="space-y-1">
           <label className="text-slate-400 block mb-1">Preset de Pantalla</label>
           <select
@@ -165,7 +165,7 @@ export const CanvasPropertiesTab = ({
             }}
             className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200"
           >
-            <option value="movil">Móvil Smartphone (375 x 812 px)</option>
+            <option value="movil">MÃ³vil Smartphone (375 x 812 px)</option>
             <option value="tablet">Tablet / iPad (768 x 1024 px)</option>
             <option value="web">Pantalla Web Escritorio (1024 x 640 px)</option>
           </select>
@@ -194,7 +194,7 @@ export const CanvasPropertiesTab = ({
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-slate-400 block mb-1">Ancho Mínimo</label>
+            <label className="text-slate-400 block mb-1">Ancho MÃ­nimo</label>
             <input
               type="number"
               placeholder="Ej. 320"
@@ -204,7 +204,7 @@ export const CanvasPropertiesTab = ({
             />
           </div>
           <div>
-            <label className="text-slate-400 block mb-1">Alto Mínimo</label>
+            <label className="text-slate-400 block mb-1">Alto MÃ­nimo</label>
             <input
               type="number"
               placeholder="Ej. 600"
@@ -217,7 +217,7 @@ export const CanvasPropertiesTab = ({
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-slate-400 block mb-1">Ancho Máximo</label>
+            <label className="text-slate-400 block mb-1">Ancho MÃ¡ximo</label>
             <input
               type="number"
               placeholder="Ej. 1200"
@@ -227,7 +227,7 @@ export const CanvasPropertiesTab = ({
             />
           </div>
           <div>
-            <label className="text-slate-400 block mb-1">Alto Máximo</label>
+            <label className="text-slate-400 block mb-1">Alto MÃ¡ximo</label>
             <input
               type="number"
               placeholder="Ej. 1600"
@@ -247,12 +247,12 @@ export const CanvasPropertiesTab = ({
             className="rounded border-slate-700 text-teal-600 focus:ring-0 bg-slate-950"
           />
           <label htmlFor="fitContentCheck" className="text-slate-300 text-[11px] cursor-pointer">
-            Ajustar automáticamente al contenido (Fit content)
+            Ajustar automÃ¡ticamente al contenido (Fit content)
           </label>
         </div>
       </div>
 
-      {/* 3. SECCIÓN: APARIENCIA */}
+      {/* 3. SECCIÃ“N: APARIENCIA */}
       <div className="space-y-2.5 border-b border-slate-800 pb-3">
         <span className="font-semibold text-slate-300 block text-[11px]">Apariencia y Fondo</span>
 
@@ -377,10 +377,10 @@ export const CanvasPropertiesTab = ({
                   onActualizarLienzo('statusBarContentColor', 'auto');
                 }}
                 className="text-[10px] text-teal-400 hover:text-teal-300"
-                title="Restablecer barra transparente con contraste automático"
+                title="Restablecer barra transparente con contraste automÃ¡tico"
               >Restablecer</button>
             </div>
-            <p className="text-[10px] text-slate-500">Fija sobre el contenido y transparente por defecto, como en un teléfono real.</p>
+            <p className="text-[10px] text-slate-500">Fija sobre el contenido y transparente por defecto, como en un telÃ©fono real.</p>
             <label className="flex items-center gap-2 text-slate-300"><input type="checkbox" checked={vistaActual.statusBarVisible !== false} onChange={e => onActualizarLienzo('statusBarVisible', e.target.checked)} />Mostrar status bar</label>
             <label className="text-slate-400 block">Alto de barra (px)
               <input type="number" min="0" max="80" value={vistaActual.statusBarHeight ?? 24} onChange={(e) => onActualizarLienzo('statusBarHeight', Number(e.target.value))} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200" />
@@ -407,7 +407,7 @@ export const CanvasPropertiesTab = ({
                 onChange={(e) => onActualizarLienzo('statusBarContentColor', e.target.value)}
                 className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200"
               >
-                <option value="auto">Automático según el fondo</option>
+                <option value="auto">AutomÃ¡tico segÃºn el fondo</option>
                 <option value="#000000">Negro</option>
                 <option value="#FFFFFF">Blanco</option>
               </select>
@@ -416,10 +416,10 @@ export const CanvasPropertiesTab = ({
         )}
 
         {vistaActual.dispositivo === 'movil' && <div className="space-y-2 border-t border-slate-800 pt-3">
-          <span className="font-semibold text-slate-300 text-[11px]">Navegación del smartphone</span>
+          <span className="font-semibold text-slate-300 text-[11px]">NavegaciÃ³n del smartphone</span>
           <label className="text-slate-400 block">Controles del sistema
             <select value={vistaActual.navigationMode || 'buttons'} onChange={e => onActualizarLienzo('navigationMode', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200">
-              <option value="buttons">Barra con atrás, inicio y recientes</option><option value="gestures">Gestos</option><option value="none">Ocultar</option>
+              <option value="buttons">Barra con atrÃ¡s, inicio y recientes</option><option value="gestures">Gestos</option><option value="none">Ocultar</option>
             </select>
           </label>
           <label className="text-slate-400 block">Color de fondo (token o HEX)
@@ -456,11 +456,11 @@ export const CanvasPropertiesTab = ({
         </div>
       </div>
 
-      {/* 4. SECCIÓN: ESPACIADO (PADDING 4 LADOS) */}
+      {/* 4. SECCIÃ“N: ESPACIADO (PADDING 4 LADOS) */}
       <div className="space-y-2.5 border-b border-slate-800 pb-3">
         <span className="font-semibold text-slate-300 block text-[11px]">Relleno del Lienzo (Padding)</span>
 
-        {/* Presets Rápidos */}
+        {/* Presets RÃ¡pidos */}
         <div className="grid grid-cols-4 gap-1.5">
           {[0, 8, 16, 24].map(p => (
             <button
@@ -524,9 +524,9 @@ export const CanvasPropertiesTab = ({
         </div>
       </div>
 
-      {/* 5. SECCIÓN: BORDES Y PRESENTACIÓN */}
+      {/* 5. SECCIÃ“N: BORDES Y PRESENTACIÃ“N */}
       <div className="space-y-2.5 border-b border-slate-800 pb-3">
-        <span className="font-semibold text-slate-300 block text-[11px]">Bordes y Presentación</span>
+        <span className="font-semibold text-slate-300 block text-[11px]">Bordes y PresentaciÃ³n</span>
 
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -551,7 +551,7 @@ export const CanvasPropertiesTab = ({
         </div>
 
         <div className="space-y-1">
-          <label className="text-slate-400 block mb-1">Sombra de Presentación</label>
+          <label className="text-slate-400 block mb-1">Sombra de PresentaciÃ³n</label>
           <div className="grid grid-cols-2 gap-1.5">
             {presetsSombra.map(({ label, valor }) => (
               <button
@@ -570,13 +570,13 @@ export const CanvasPropertiesTab = ({
         </div>
       </div>
 
-      {/* 6. SECCIÓN: COMPORTAMIENTO Y SCROLL */}
+      {/* 6. SECCIÃ“N: COMPORTAMIENTO Y SCROLL */}
       <div className="space-y-2.5 border-b border-slate-800 pb-3">
         <span className="font-semibold text-slate-300 block text-[11px]">Comportamiento y Flujo</span>
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-slate-400 block mb-1">Dirección del Flujo</label>
+            <label className="text-slate-400 block mb-1">DirecciÃ³n del Flujo</label>
             <select
               value={vistaActual.direccion || 'column'}
               onChange={(e) => onActualizarLienzo('direccion', e.target.value)}
@@ -605,7 +605,7 @@ export const CanvasPropertiesTab = ({
             className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200"
           >
             <option value="hidden">Oculto (Hidden)</option>
-            <option value="auto">Automático (Scroll con contenido)</option>
+            <option value="auto">AutomÃ¡tico (Scroll con contenido)</option>
             <option value="visible">Visible (Permitir desborde)</option>
           </select>
         </div>

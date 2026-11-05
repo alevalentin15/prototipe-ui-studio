@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getComponentDefinition } from '../../registry/componentRegistry.js';
 import { isSemanticToken, resolveM3Color } from '../../theme/materialTheme.js';
 
@@ -10,6 +10,8 @@ export const PropertiesTab = ({
   onActualizarProp,
   onGuardarComoReutilizable
 }) => {
+  const [bindingTarget, setBindingTarget] = useState('texto');
+  const [bindingVariable, setBindingVariable] = useState('');
   if (!componenteSeleccionado) {
     return (
       <div className="text-slate-500 text-xs text-center py-8 select-none">
@@ -21,6 +23,16 @@ export const PropertiesTab = ({
   const def = getComponentDefinition(componenteSeleccionado.tipo);
   const sections = def?.propertySections || ['dimensiones', 'espaciado', 'estilos'];
   const props = componenteSeleccionado.props || {};
+  const boolControl = ['switch', 'checkbox'].includes(String(componenteSeleccionado.tipo).toLowerCase());
+  const bindingTargets = boolControl
+    ? [{ key: 'variableName', label: 'Estado booleano del control' }]
+    : [
+        { key: 'visibleWhen', label: 'Visibilidad booleana' }, { key: 'texto', label: 'Texto' }, { key: 'titulo', label: 'Título' }, { key: 'bg', label: 'Color de fondo' }, { key: 'textColor', label: 'Color del texto' },
+        { key: 'width', label: 'Ancho' }, { key: 'height', label: 'Alto' }, { key: 'value', label: 'Valor numérico' },
+        { key: 'opacity', label: 'Opacidad' }, { key: 'activo', label: 'Índice activo' }, { key: 'showLabels', label: 'Mostrar etiquetas' }, { key: 'checked', label: 'Estado checked' }, { key: 'selected', label: 'Estado seleccionado' }
+      ];
+  const activeBindingTarget = bindingTargets.some(target => target.key === bindingTarget) ? bindingTarget : bindingTargets[0].key;
+  const variables = Object.keys(proyectoActual?.variables || {});
 
   return (
     <div className="space-y-4 text-xs">
@@ -44,6 +56,20 @@ export const PropertiesTab = ({
       </div>
 
       {/* SECCIÓN: TEXTO */}
+      <div className="space-y-2 border-b border-slate-800 pb-3">
+        <span className="font-semibold text-slate-300 block text-[11px]">Lógica y variables</span>
+        <p className="text-[10px] text-slate-500">En cualquier propiedad de texto, color o tamaño puedes escribir {'{{nombreVariable}}'} para enlazar su valor.</p>
+        <label className="block text-slate-400">Mostrar cuando (vacío = siempre)
+          <input value={props.visibleWhen || ''} placeholder="sesionActiva == true" onChange={e => onActualizarProp('visibleWhen', e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200 font-mono" />
+        </label>
+        <div className="grid grid-cols-2 gap-1.5">
+          <label className="block text-slate-400">Propiedad<select value={activeBindingTarget} onChange={e => setBindingTarget(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200">{bindingTargets.map(target => <option key={target.key} value={target.key}>{target.label}</option>)}</select></label>
+          <label className="block text-slate-400">Variable<select value={variables.includes(bindingVariable) ? bindingVariable : (variables[0] || '')} onChange={e => setBindingVariable(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200"><option value="">Seleccionar…</option>{variables.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+        </div>
+        <button type="button" disabled={!variables.length} onClick={() => { const selectedVariable = variables.includes(bindingVariable) ? bindingVariable : variables[0]; if (selectedVariable) onActualizarProp(activeBindingTarget, boolControl ? selectedVariable : `{{${selectedVariable}}}`); }} className="w-full rounded border border-violet-700 bg-violet-950/50 px-2 py-1.5 text-violet-200 disabled:opacity-40">Enlazar variable a propiedad</button>
+        {boolControl && props.variableName && <button type="button" onClick={() => onActualizarProp('variableName', '')} className="text-left text-[10px] text-slate-500 hover:text-slate-300">Desvincular estado y usar el valor del componente</button>}
+      </div>
+
       {sections.includes('contenido_texto') && (
         <div className="space-y-2 border-b border-slate-800 pb-3">
           <span className="font-semibold text-slate-300 block text-[11px]">Contenido de Texto</span>
@@ -482,7 +508,7 @@ export const PropertiesTab = ({
               <option value="color">Color en icono y texto</option><option value="pill">Indicador tipo píldora</option><option value="icon">Fondo detrás del icono</option>
             </select>
           </label>
-          {[['activeColor', 'Color activo (token o HEX)', 'primary'], ['activeContainer', 'Fondo activo (token o HEX)', 'secondaryContainer'], ['activeIconColor', 'Color del icono activo', 'onSecondaryContainer'], ['textColor', 'Color inactivo', 'onSurfaceVariant'], ['bg', 'Fondo de barra', 'surface']].map(([key, label, fallback]) => <label key={key} className="block text-slate-400">{label}<input value={props[key] || fallback} onChange={e => onActualizarProp(key, e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-[10px]" /></label>)}
+          {[['activeColor', 'Color activo sin fondo', 'primary'], ['activeIconColor', 'Color del icono sobre el fondo activo', 'onSecondaryContainer'], ['activeLabelColor', 'Color del texto activo', 'primary'], ['inactiveIconColor', 'Color del icono inactivo', 'onSurfaceVariant'], ['inactiveLabelColor', 'Color del texto inactivo', 'onSurfaceVariant'], ['activeContainer', 'Fondo del elemento activo', 'secondaryContainer'], ['bg', 'Fondo de barra', 'surface']].map(([key, label, fallback]) => <label key={key} className="block text-slate-400">{label}<input value={props[key] || fallback} onChange={e => onActualizarProp(key, e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-[10px]" /></label>)}
           <div className="space-y-1">
             <label className="text-slate-400 block mb-1">Índice Activo (0, 1, 2...)</label>
             <input

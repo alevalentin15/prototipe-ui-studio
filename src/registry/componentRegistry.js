@@ -205,6 +205,12 @@ export const COMPONENT_DEFINITIONS = {
       textColor: 'onSurfaceVariant',
       activeColor: 'primary',
       activeContainer: 'secondaryContainer',
+      navigationStyle: 'pill',
+      activeIconColor: 'onSecondaryContainer',
+      inactiveIconColor: 'onSurfaceVariant',
+      activeLabelColor: 'primary',
+      inactiveLabelColor: 'onSurfaceVariant',
+      showLabels: true,
       padding: '8px 12px',
       margin: '0',
       width: '100%',
@@ -778,7 +784,7 @@ Object.assign(COMPONENT_DEFINITIONS, {
   }),
   BottomAppBar: definirComponenteBloque3('BottomAppBar', COMPONENT_CATEGORIES.NAVEGACION, {
     name: 'Bottom App Bar', icon: 'layers', propertySections: ['contenido_navigationbar', 'dimensiones', 'espaciado', 'estilos'],
-    defaultProps: { items: 'menu:menu, buscar:search, agregar:plus', bg: 'surface', textColor: 'onSurfaceVariant', width: '100%', padding: '12px 16px', borderRadius: '16px', fixedPosition: 'bottom', applyToScreens: 'current' }
+    defaultProps: { items: 'menu:menu, buscar:search, agregar:plus', activo: 0, navigationStyle: 'pill', showLabels: false, bg: 'surface', textColor: 'onSurfaceVariant', activeColor: 'primary', activeContainer: 'secondaryContainer', activeIconColor: 'onSecondaryContainer', activeLabelColor: 'primary', inactiveIconColor: 'onSurfaceVariant', inactiveLabelColor: 'onSurfaceVariant', width: '100%', padding: '12px 16px', borderRadius: '16px', fixedPosition: 'bottom', applyToScreens: 'current' }
   })
 });
 

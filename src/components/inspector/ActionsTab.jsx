@@ -53,7 +53,7 @@ export const ActionsTab = ({
           onChange={(e) => {
             const v = e.target.value;
             if (v === 'ninguna') onActualizarAccion(null);
-            else onActualizarAccion({ tipo: v, payload: 'Contenido predeterminado' });
+            else onActualizarAccion(v === 'setVariable' ? { tipo: v, variable: Object.keys(proyectoActual?.variables || {})[0] || '', value: 'true' } : { tipo: v, payload: 'Contenido predeterminado' });
           }}
           className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none"
         >
@@ -62,12 +62,18 @@ export const ActionsTab = ({
           <option value="dialog">Abrir DiÃ¡logo Modal</option>
           <option value="alerta">Lanzar Alerta / NotificaciÃ³n</option>
           <option value="navegar">Navegar a otra Vista</option>
+          <option value="setVariable">Asignar valor a variable</option>
         </select>
       </div>
 
       {componenteSeleccionado.accion && (
         <div className="space-y-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
-          {componenteSeleccionado.accion.tipo === 'navegar' ? (
+          {componenteSeleccionado.accion.tipo === 'setVariable' ? (
+            <div className="space-y-2">
+              <label className="block text-slate-400">Variable<select value={componenteSeleccionado.accion.variable || ''} onChange={e => onActualizarAccion({ ...componenteSeleccionado.accion, variable: e.target.value })} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-slate-200">{Object.keys(proyectoActual?.variables || {}).map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+              <label className="block text-slate-400">Nuevo valor (JSON)<input value={componenteSeleccionado.accion.value ?? 'true'} onChange={e => onActualizarAccion({ ...componenteSeleccionado.accion, value: e.target.value })} placeholder='true, 10, "texto", [1,2]' className="w-full mt-1 bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-slate-200 font-mono" /></label>
+            </div>
+          ) : componenteSeleccionado.accion.tipo === 'navegar' ? (
             <div className="space-y-1">
               <label className="text-slate-400">Vista Destino</label>
               <select

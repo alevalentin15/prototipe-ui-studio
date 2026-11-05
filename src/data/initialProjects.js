@@ -6,6 +6,7 @@ export const proyectosIniciales = [
       modo: 'claro',
       paletaPersonalizada: {}
     },
+    variables: { mostrarOferta: true, contador: 0 },
     vistas: [
       {
         id: 'vista-1',
@@ -34,7 +35,7 @@ export const proyectosIniciales = [
             id: 'cmp-3',
             tipo: 'Card',
             etiqueta: 'Banner Promocional',
-            props: { bg: 'primaryContainer', textColor: 'onPrimaryContainer', borderRadius: '16px', padding: '16px', gap: '8px' },
+            props: { bg: 'primaryContainer', textColor: 'onPrimaryContainer', borderRadius: '16px', padding: '16px', gap: '8px', visibleWhen: 'mostrarOferta == true' },
             hijos: [
               { id: 'cmp-3-1', tipo: 'Text', etiqueta: 'Texto Promo', props: { texto: '¡50% de Descuento Hoy!', fontSize: '18px', fontWeight: 'bold', color: 'onPrimaryContainer' } },
               { id: 'cmp-3-2', tipo: 'Button', etiqueta: 'Boton Oferta', props: { texto: 'Obtener Oferta', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '8px 18px' }, accion: { tipo: 'bottomsheet', payload: 'Detalles de la promoción exclusiva aplicados a tu cuenta.' } }
@@ -53,7 +54,11 @@ export const proyectosIniciales = [
             etiqueta: 'Diálogo de Confirmación',
             props: { texto: 'Confirmar Pedido', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '12px 20px', width: 'auto' },
             accion: { tipo: 'dialog', payload: '¿Deseas procesar tu compra por $49.99 USD?' }
-          }
+          },
+          { id: 'cmp-nav-switch', tipo: 'Switch', etiqueta: 'Controlar oferta con variable', props: { etiqueta: 'Mostrar banner promocional', variableName: 'mostrarOferta' } },
+          { id: 'cmp-nav-hide', tipo: 'Button', etiqueta: 'Ocultar oferta con acción', props: { texto: 'Ocultar promoción', bg: 'surfaceVariant', textColor: 'onSurfaceVariant', padding: '10px 16px' }, accion: { tipo: 'setVariable', variable: 'mostrarOferta', value: 'false' } },
+          { id: 'cmp-go-detail', tipo: 'Button', etiqueta: 'Navegar al detalle', props: { texto: 'Ver detalle del producto', bg: 'primary', textColor: 'onPrimary', padding: '10px 16px' }, accion: { tipo: 'navegar', vistaId: 'vista-2' } },
+          { id: 'cmp-bottom-navigation', tipo: 'NavigationBar', etiqueta: 'Navegación del proyecto', props: { items: 'Inicio:home:vista-1, Producto:search:vista-2', activo: 0, navigationStyle: 'pill', showLabels: true, fixedPosition: 'bottom', applyToScreens: 'all', bg: 'surface', activeContainer: 'secondaryContainer' } }
         ]
       },
       {
@@ -69,7 +74,8 @@ export const proyectosIniciales = [
         componentes: [
           { id: 'cmp-2-1', tipo: 'Text', etiqueta: 'Título Producto', props: { texto: 'Audífonos Bluetooth Pro', fontSize: '24px', fontWeight: 'bold', color: 'onBackground' } },
           { id: 'cmp-2-2', tipo: 'Text', etiqueta: 'Precio', props: { texto: '$199.99 USD', fontSize: '20px', fontWeight: '600', color: 'primary' } },
-          { id: 'cmp-2-3', tipo: 'Button', etiqueta: 'Comprar', props: { texto: 'Comprar Ahora', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '14px' }, accion: { tipo: 'alerta', payload: '¡Compra procesada con éxito!' } }
+          { id: 'cmp-2-3', tipo: 'Button', etiqueta: 'Comprar', props: { texto: 'Comprar Ahora', bg: 'primary', textColor: 'onPrimary', borderRadius: '20px', padding: '14px' }, accion: { tipo: 'alerta', payload: '¡Compra procesada con éxito!' } },
+          { id: 'cmp-detail-topbar', tipo: 'TopAppBar', etiqueta: 'Barra superior de detalle', props: { titulo: 'Detalle de producto', navigationIcon: 'arrowLeft', showNavigationIcon: true, showActionIcon: false, fixedPosition: 'top', applyToScreens: 'current', bg: 'surface' }, accion: { tipo: 'navegar', vistaId: 'vista-1' } }
         ]
       }
     ]

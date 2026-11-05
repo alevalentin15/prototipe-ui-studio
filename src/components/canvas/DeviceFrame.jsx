@@ -9,6 +9,9 @@ import { getContrastingTextColor, resolveM3Color, resolveM3StyleValue } from '..
 
 export const DeviceFrame = ({
   vistaActual,
+  vistaIdActual,
+  runtimeVariables = {},
+  onSetVariable,
   sharedTopBar,
   sharedBottomBar,
   modoVistaPrevia,
@@ -67,22 +70,20 @@ export const DeviceFrame = ({
   const navigationBarHeight = vistaActual.dispositivo === 'movil' && navigationMode !== 'none' ? (navigationMode === 'gestures' ? 18 : 28) : 0;
   const topLocalBar = vistaActual.componentes.find(cmp => cmp.props?.fixedPosition === 'top' && !['all', 'selected'].includes(cmp.props?.applyToScreens));
   const bottomLocalBar = vistaActual.componentes.find(cmp => cmp.props?.fixedPosition === 'bottom' && !['all', 'selected'].includes(cmp.props?.applyToScreens));
-  const barHeight = (cmp, fallback) => {
-    const parsed = Number.parseFloat(cmp?.props?.height);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  const localTopBar = sharedTopBar ? null : topLocalBar;
+  const localBottomBar = sharedBottomBar ? null : bottomLocalBar;
+  const asFlowBar = cmp => ({ ...cmp, props: { ...cmp.props, fixedPosition: '', fixedOffset: undefined } });
+  const flowSlotStyle = (cmp, fallback) => {
+    const configured = typeof cmp?.props?.height === 'string' && cmp.props.height.endsWith('px') ? Number.parseFloat(cmp.props.height) : Number(cmp?.props?.height);
+    return { minHeight: `${Math.max(fallback, Number.isFinite(configured) ? configured : 0)}px`, flex: '0 0 auto' };
   };
-  const localTopInset = sharedTopBar ? 0 : (topLocalBar ? barHeight(topLocalBar, 56) : 0);
-  const localBottomInset = sharedBottomBar ? 0 : (bottomLocalBar ? barHeight(bottomLocalBar, 64) : 0);
-  const topOffset = cmp => cmp.props?.fixedOffset !== undefined ? cmp.props.fixedOffset : statusBarHeight;
-  const bottomOffset = cmp => cmp.props?.fixedOffset !== undefined ? cmp.props.fixedOffset : navigationBarHeight;
-  const withDeviceOffsets = cmp => ({ ...cmp, props: { ...cmp.props, fixedOffset: cmp.props?.fixedPosition === 'top' ? topOffset(cmp) : cmp.props?.fixedPosition === 'bottom' ? bottomOffset(cmp) : cmp.props?.fixedOffset } });
   const browserVisible = vistaActual.dispositivo === 'web' && vistaActual.browserBarVisible !== false;
   const navigationBg = resolveM3Color(vistaActual.navigationBarBg || 'surface', modoTema, paletaPersonalizada);
   const navigationColor = vistaActual.navigationBarContentColor && vistaActual.navigationBarContentColor !== 'auto'
     ? resolveM3Color(vistaActual.navigationBarContentColor, modoTema, paletaPersonalizada)
     : getContrastingTextColor(navigationBg);
-  const contentPaddingTop = `calc(${padTop} + ${localTopInset}px)`;
-  const contentPaddingBottom = `calc(${padBottom} + ${localBottomInset}px)`;
+  const contentPaddingTop = padTop;
+  const contentPaddingBottom = padBottom;
   const handleTouchStart = event => {
     if (modoVistaPrevia && navigationMode === 'gestures' && event.touches.length === 1) gestureStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY, left: event.currentTarget.getBoundingClientRect().left };
   };
@@ -230,7 +231,8 @@ export const DeviceFrame = ({
           <button type="button" title="Más opciones" className="p-1 hover:bg-slate-200 rounded"><Icon name="moreVertical" /></button>
         </div>}
 
-        {sharedTopBar && <div className="w-full shrink-0"><CanvasRenderer key={`shared-top-${sharedTopBar.component.id}`} cmp={{ ...sharedTopBar.component, props: { ...sharedTopBar.component.props, fixedPosition: '' } }} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
+        {sharedTopBar && <div className="w-full" style={flowSlotStyle(sharedTopBar.component, 56)}><CanvasRenderer key={`shared-top-${sharedTopBar.component.id}`} cmp={{ ...sharedTopBar.component, props: { ...sharedTopBar.component.props, fixedPosition: '' } }} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
+        {localTopBar && <div className="w-full" style={flowSlotStyle(localTopBar, 56)}><CanvasRenderer key={`local-top-${localTopBar.id}`} cmp={asFlowBar(localTopBar)} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
 
         {/* Renderizado de Componentes o Estado Vacío */}
         <div className="device-content-scroll" style={estiloContenido}>
@@ -243,10 +245,13 @@ export const DeviceFrame = ({
             </p>
           </div>
         ) : (
-          vistaActual.componentes.filter(cmp => !(['topappbar', 'appbar', 'navigationbar', 'bottomnav', 'bottomappbar'].includes(String(cmp.tipo).toLowerCase()) && ['all', 'selected'].includes(cmp.props?.applyToScreens))).map(cmp => (
+          vistaActual.componentes.filter(cmp => cmp.id !== localTopBar?.id && cmp.id !== localBottomBar?.id && !(['topappbar', 'appbar', 'navigationbar', 'bottomnav', 'bottomappbar'].includes(String(cmp.tipo).toLowerCase()) && ['all', 'selected'].includes(cmp.props?.applyToScreens))).map(cmp => (
             <CanvasRenderer
               key={cmp.id}
-              cmp={withDeviceOffsets(cmp)}
+              cmp={cmp}
+              vistaIdActual={vistaIdActual}
+              runtimeVariables={runtimeVariables}
+              onSetVariable={onSetVariable}
               idComponenteSeleccionado={idComponenteSeleccionado}
               modoVistaPrevia={modoVistaPrevia}
               parentOrientation={vistaActual.direccion === 'row' ? 'horizontal' : 'vertical'}
@@ -261,7 +266,8 @@ export const DeviceFrame = ({
         )}
         </div>
 
-        {sharedBottomBar && <div className="w-full shrink-0"><CanvasRenderer key={`shared-bottom-${sharedBottomBar.component.id}`} cmp={{ ...sharedBottomBar.component, props: { ...sharedBottomBar.component.props, fixedPosition: '' } }} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
+        {localBottomBar && <div className="w-full" style={flowSlotStyle(localBottomBar, 64)}><CanvasRenderer key={`local-bottom-${localBottomBar.id}`} cmp={asFlowBar(localBottomBar)} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
+        {sharedBottomBar && <div className="w-full" style={flowSlotStyle(sharedBottomBar.component, 64)}><CanvasRenderer key={`shared-bottom-${sharedBottomBar.component.id}`} cmp={{ ...sharedBottomBar.component, props: { ...sharedBottomBar.component.props, fixedPosition: '' } }} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={idComponenteSeleccionado} modoVistaPrevia={modoVistaPrevia} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} /></div>}
 
         {vistaActual.dispositivo === 'movil' && navigationMode !== 'none' && <div className="shrink-0 flex items-center justify-center select-none" style={{ height: `${navigationBarHeight}px`, minHeight: `${navigationBarHeight}px`, background: navigationBg, color: navigationColor }}>
           {navigationMode === 'gestures' ? <button type="button" aria-label="Inicio" onClick={onDeviceHome} className="w-32 h-1.5 rounded-full" style={{ background: navigationColor }} /> : <div className="w-full flex items-center justify-around">
@@ -277,7 +283,7 @@ export const DeviceFrame = ({
           onClose={onCloseBottomSheet}
           modoTema={modoTema}
           paletaPersonalizada={paletaPersonalizada}
-        >{bottomSheetActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</BottomSheetOverlay>
+        >{bottomSheetActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</BottomSheetOverlay>
 
         <DialogOverlay
           activo={dialogoActivo}
@@ -285,7 +291,7 @@ export const DeviceFrame = ({
           onConfirm={onConfirmDialogo}
           modoTema={modoTema}
           paletaPersonalizada={paletaPersonalizada}
-        >{dialogoActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</DialogOverlay>
+        >{dialogoActivo?.vista?.componentes?.map(cmp => <CanvasRenderer key={cmp.id} cmp={cmp} vistaIdActual={vistaIdActual} runtimeVariables={runtimeVariables} onSetVariable={onSetVariable} idComponenteSeleccionado={null} modoVistaPrevia={true} parentOrientation="vertical" modoTema={modoTema} paletaPersonalizada={paletaPersonalizada} onSeleccionarComponente={onSeleccionarComponente} onEliminarComponente={onEliminarComponente} onEjecutarAccion={onEjecutarAccion} onActualizarProp={onActualizarProp} />)}</DialogOverlay>
       </div>
     </div>
   );
